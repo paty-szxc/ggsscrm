@@ -26,16 +26,6 @@
                     variant="outlined"
                     v-model="tempData.date_started"
                 />
-                <v-date-input
-                    class="mt-3"
-                    density="compact"
-                    hide-details
-                    label="Date Completed"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.date_completed"
-                />
                 <v-text-field
                     class="mt-3"
                     hide-details
@@ -76,7 +66,7 @@
                         density="compact" 
                         hide-details 
                         v-model="tempData.data_process"
-                        label="Data">
+                        label="Start">
                     </v-checkbox>
                     <v-checkbox
                         class="ms-8"
@@ -85,10 +75,30 @@
                         density="compact" 
                         hide-details 
                         v-model="tempData.plans"
-                        label="Plans">
+                        label="End">
                     </v-checkbox>
-                </div>
+                </div>                
+                <v-date-input
+                    density="compact"
+                    hide-details
+                    label="Date Approved"
+                    prepend-icon=""
+                    prepend-inner-icon="mdi-calendar"
+                    variant="outlined"
+                    v-model="tempData.date_approved"
+                />
+                <v-date-input
+                    class="mt-3"
+                    density="compact"
+                    hide-details
+                    label="Date Completed/Delivered"
+                    prepend-icon=""
+                    prepend-inner-icon="mdi-calendar"
+                    variant="outlined"
+                    v-model="tempData.date_completed"
+                />
                 <v-text-field
+                    class="mt-3"
                     hide-details
                     label="Remarks"
                     v-model="tempData.remarks">
@@ -105,17 +115,14 @@
                     label="Contact No."
                     v-model="tempData.contact_no">
                 </v-text-field>
-                <v-date-input
+                <v-text-field
                     class="mt-3"
-                    density="compact"
                     hide-details
-                    label="Date Approved"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.date_approved"
-                />
-                <v-date-input
+                    label="Thru"
+                    v-model="tempData.thru">
+                </v-text-field>
+
+                <!-- <v-date-input
                     class="mt-3"
                     density="compact"
                     hide-details
@@ -124,7 +131,7 @@
                     prepend-inner-icon="mdi-calendar"
                     variant="outlined"
                     v-model="tempData.date_delivered"
-                />
+                /> -->
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
@@ -155,16 +162,17 @@ import Snackbar from '../Components/Snackbar.vue';
 
 const headers = ref([
     { title: 'Date Started', value: 'date_started', align: 'center' },
-    { title: 'Date Completed', value: 'date_completed', align: 'center' },
     { title: 'Location', value: 'location', align: 'center' },
     { title: 'Type of Survey', value: 'survey_details', align: 'center' },
     { title: 'Area', value: 'area', align: 'center' },
     { title: 'Processed By', value: 'processed_by' },
-    { title: 'Survey Progress Tracker', align: 'center', children: [
-        { title: 'Survey', value: 'survey', align: 'center' },
-        { title: 'Data Process', value: 'data_process', align: 'center' },
-        { title: 'Plans', value: 'plans', align: 'center' },
+    { title: 'Survey', value: 'survey', align: 'center' },
+    { title: 'Making of Plans (Data Process)', align: 'center', children: [
+        { title: 'Start', value: 'data_process', align: 'center' },
+        { title: 'End', value: 'plans', align: 'center' },
     ]},
+    { title: 'Date Approved', value: 'date_approved', align: 'center' },
+    { title: 'Date Completed/Delivered', value: 'date_completed', align: 'center' },
     { title: 'Remarks', value: 'remarks', align: 'center' }
 ])
 
@@ -175,117 +183,70 @@ const tempData = ref({})
 const edit = ref({})
 const dialog = ref(false)
 const isEditMode = ref(false)
+const currentUser = ref(null)
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-        console.error('Invalid date:', dateString);
-        return null;
+const fetchCurrentUser = async () => {
+    try{
+        const res = await axios.get('/get_current_user')
+        currentUser.value = res.data
+    } 
+    catch(error){
+        console.error('Error fetching user data', error)
     }
-    return date.toISOString().split('T')[0]
 }
-
-// async function submitForm() {
-//     try{
-//         tempData.value.date_started = formatDate(tempData.value.date_started)
-//         tempData.value.date_completed = formatDate(tempData.value.date_completed)
-//         tempData.value.date_approved = formatDate(tempData.value.date_approved)
-//         tempData.value.date_delivered = formatDate(tempData.value.date_delivered)
-
-//         if(!isEditMode.value){
-//             const res = await axios.post('insert_survey_data', tempData.value)
-//             console.log(res.data.message)
-//             snackbar.value.alertSuccess()
-//             closeAddDialog()
-//             tempData.value = {}
-//             fetchSurveyData()
-//         } 
-//         else{
-//             const res = await axios.post('update_survey_data', tempData.value)
-//             console.log(res.data.message)
-//             snackbar.value.alertUpdate()
-//             closeAddDialog()
-//             tempData.value = {}
-//             fetchSurveyData()
-//         }
-
-//     }
-//     catch(error){
-//         if(error.response && error.response.data.errors){
-//             console.log(error.response.data.errors)
-//         }
-//         else{
-//             console.error('An error occurred:', error)
-//         }
-//     }
-// }
 
 const submitForm = async () => {
-    // console.log(tempData.value.date_completed, 'tempData.value.date_completed')
+    //make a copy so you don't mutate the form state
+    const to_update = { ...tempData.value };
 
-    const to_update = tempData.value
+    //convert booleans to integers
+    to_update.survey = !!to_update.survey ? 1 : 0;
+    to_update.data_process = !!to_update.data_process ? 1 : 0;
+    to_update.plans = !!to_update.plans ? 1 : 0;
 
-    if(!isEditMode.value){
-        const dateStarted = new Date(tempData.value.date_started)
-        const dateCompleted = tempData.value.date_completed ? new Date(tempData.value.date_completed) : null
-
-        dateStarted ? dateStarted.setDate(dateStarted.getDate() + 1) : null
-        dateCompleted ? dateCompleted.setDate(dateCompleted.getDate() + 1) : null
-
-        tempData.value.date_started = formatDate(dateStarted)
-        tempData.value.remarks = tempData.value.remarks
-
-        tempData.value.date_completed = dateCompleted ? formatDate(dateCompleted) : null
-
-        tempData.value.date_approved = tempData.value.date_approved ? formatDate(tempData.value.date_approved) : null
-        tempData.value.date_delivered = tempData.value.date_delivered ? formatDate(tempData.value.date_delivered) : null
-
-        axios({
-            method: 'post',
-            url: 'insert_survey_data',
-            data: {
-                to_update
+    // Format dates only if they are not already formatted
+    const dateFields = ['date_started', 'date_completed', 'date_approved', 'date_delivered'];
+    dateFields.forEach(field => {
+        if (to_update[field]) {
+            //if it's already in YYYY-MM-DD format, keep it as is
+            if (typeof to_update[field] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(to_update[field])) {
+                //already formatted correctly, no need to change
+                return;
             }
-        }).then((res) =>{
-            console.log(res.data)
-            fetchSurveyData()
-            snackbar.value.alertSuccess()
-            dialog.value = false
-            tempData.value = {}
-        }).catch(() => {
-            snackbar.value.alertError()
-        })
-    }
-    else{
-        const dateCompleted = tempData.value.date_completed ? new Date(tempData.value.date_completed) : null
-        dateCompleted ? dateCompleted.setDate(dateCompleted.getDate() + 1) : null
-
-        // tempData.value.date_started = formatDate(dateStarted)
-        tempData.value.remarks = tempData.value.remarks
-
-        tempData.value.date_completed = dateCompleted ? formatDate(dateCompleted) : null
-        tempData.value.date_approved = tempData.value.date_approved ? formatDate(tempData.value.date_approved) : null
-        tempData.value.date_delivered = tempData.value.date_delivered ? formatDate(tempData.value.date_delivered) : null
-
-        axios({
-            method: 'post',
-            url: 'update_survey_data',
-            data: {
-                to_update
+            
+            //if it's a Date object or other format, convert it properly
+            const d = new Date(to_update[field]);
+            if (!isNaN(d.getTime())) {
+                //use local date to avoid timezone issues
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                to_update[field] = `${year}-${month}-${day}`;
+            } else {
+                to_update[field] = null;
             }
-        }).then((res) => {
-            console.log(res.data)
-            fetchSurveyData()
-            snackbar.value.alertUpdate()
-            dialog.value = false
-            tempData.value = {}
-        }).catch(() => {
-            snackbarMessage.value = 'There was an error updating your data. Please try again.';
-            snackbar.value = true
-        })
-    }
-}
+        }
+    });
 
+    const url = isEditMode.value ? 'update_survey_data' : 'insert_survey_data';
+
+    axios({
+        method: 'post',
+        url,
+        data: { to_update }
+    }).then((res) => {
+        fetchSurveyData();
+        if (isEditMode.value) {
+            snackbar.value.alertUpdate();
+        } else {
+            snackbar.value.alertSuccess();
+        }
+        dialog.value = false;
+        tempData.value = {};
+    }).catch(() => {
+        snackbar.value.alertError();
+    });
+};
 
 const openEditDialog = (item) => {
     fetchSurveyData()
@@ -301,6 +262,17 @@ const openEditDialog = (item) => {
 const openAddDialog = () => {
     isEditMode.value = false
     dialog.value = true
+
+    if (currentUser.value){
+        const excludedUserIds = [1, 2, 4, 12]
+
+        if(excludedUserIds.includes(currentUser.value.id)){
+            tempData.value.processed_by = currentUser.value.username
+        } 
+        else{
+            tempData.value.processed_by = `Engr. ${currentUser.value.username}`
+        }
+    }
 }
 
 const closeAddDialog = () => {
@@ -323,5 +295,6 @@ const fetchSurveyData = async () => {
 
 onMounted(() => {
     fetchSurveyData()
+    fetchCurrentUser()
 });
 </script>

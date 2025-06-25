@@ -43,10 +43,17 @@ const alertCustom = (message) => {
     snackbar.value = true
 }
 
+const alertImport = () => {
+    snackbarColor.value = 'green-darken-2'
+    snackbarMessage.value = 'File imported successfully!'
+    snackbar.value = true
+}
+
 defineExpose({ 
     alertCustom,
     alertError,
     alertSuccess,
     alertUpdate,
+    alertImport
 }) 
 </script>

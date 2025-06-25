@@ -28,6 +28,7 @@ class Survey extends Model
         'date_approved',
         'date_delivered',
         'remarks',
+        'thru'
     ];
 }
 

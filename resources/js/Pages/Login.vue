@@ -1,71 +1,256 @@
 <template>
-    <v-container class="w-full max-w-sm mx-auto">
-        <v-sheet>
-            <v-card>
-                <v-card-text class="px-6 py-4">
-                    <div class="flex justify-center mx-auto">
-                        <v-img
-                            src="images/logo.png"
-                            class="w-auto h-32"
-                            alt="Logo"
-                        ></v-img>
+    <div class="min-h-screen content-center p-4">
+        <div class="w-full max-w-4xl mx-auto">
+            <div class="flex flex-col md:flex-row rounded-xl shadow-lg overflow-hidden bg-white">
+                <div class="md:w-1/2 h-64 md:h-auto bg-[url('/images/login.jpg')] bg-cover bg-center">
+                </div>
+                <div class="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12">
+                    <div class="w-full max-w-xs mx-auto">
+                        <template v-if="isLogin">
+                            <h2 class="text-2xl md:text-3xl font-bold mb-4 text-center">Login</h2>
+                            <p class="text-gray-600 mb-6 text-center">Welcome back!</p>
+                            <v-form @submit.prevent="handleLogin" ref="loginForm">
+                                <div class="space-y-4">
+                                    <v-text-field
+                                        class="w-full"
+                                        density="compact"
+                                        label="Username"
+                                        variant="outlined"
+                                        v-model="newUser.username">
+                                    </v-text-field>
+                                    <v-text-field
+                                        class="w-full"
+                                        density="compact"
+                                        label="Password"
+                                        type="password"
+                                        variant="outlined"
+                                        v-model="newUser.password">
+                                    </v-text-field>
+                                    <!-- <div class="flex justify-between items-center">
+                                    <v-checkbox
+                                        label="Remember me"
+                                        density="compact"
+                                        hide-details>
+                                    </v-checkbox>
+                                    <a href="#" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
+                                    </div> -->
+                                    <v-btn 
+                                        block 
+                                        class="bg-purple-600 text-white mt-2"
+                                        @click="loginBtn"
+                                        :loading="loading">
+                                        Login
+                                    </v-btn>
+                                    <div class="text-center mt-4">
+                                        <a href="#" @click.prevent="toggleForm" class="text-blue-600 hover:underline">
+                                            Don't have an account? Register now!
+                                        </a>
+                                    </div>
+                                </div>
+                            </v-form>
+                        </template>
+                        <template v-else>
+                            <h2 class="text-2xl md:text-3xl font-bold mb-4 text-center">Register</h2>
+                            <p class="text-gray-600 mb-6 text-center">Create your account.</p>
+                            <v-form @submit.prevent="handleRegister" ref="registerForm">
+                                <div class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <v-text-field
+                                        density="compact"
+                                        label="Firstname"
+                                        variant="outlined"
+                                        v-model="newUser.first_name">
+                                    </v-text-field>
+                                    <v-text-field
+                                        density="compact"
+                                        label="Surname"
+                                        variant="outlined"
+                                        v-model="newUser.surname">
+                                    </v-text-field>
+                                    </div>
+                                    <v-text-field
+                                        class="w-full"
+                                        density="compact"
+                                        label="Username"
+                                        variant="outlined"
+                                        v-model="newUser.username">
+                                    </v-text-field>
+                                    <v-text-field
+                                        :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                                        class="w-full"
+                                        @click:append-inner="showPassword = !showPassword"
+                                        density="compact"
+                                        label="Password"
+                                        :type="showPassword ? 'text' : 'password'"
+                                        variant="outlined"
+                                        :rules="passwordRules"
+                                        v-model="newUser.password"
+                                        >
+                                    </v-text-field>
+                                    <v-text-field
+                                        :append-inner-icon="showConfirmPass ? 'mdi-eye-off' : 'mdi-eye'"
+                                        class="w-full"
+                                        @click:append-inner="showConfirmPass = !showConfirmPass"
+                                        density="compact"
+                                        label="Confirm Password"
+                                        :type="showConfirmPass ? 'text' : 'password'"
+                                        :rules="confirmPassRules"
+                                        variant="outlined"
+                                        v-model="newUser.confirmPass">
+                                    </v-text-field>
+                                    <v-autocomplete
+                                        class="w-full"
+                                        density="compact"
+                                        :items="roles"
+                                        label="Role"
+                                        variant="outlined"
+                                        v-model="newUser.role">
+                                    </v-autocomplete>
+                                    <v-btn 
+                                        block 
+                                        class="bg-purple-600 text-white mt-2"
+                                        @click="registerBtn"
+                                        :loading="loading">
+                                        Register
+                                    </v-btn>
+                                    <div class="text-center mt-4">
+                                    <a href="#" @click.prevent="toggleForm" class="text-blue-600 hover:underline">
+                                        Already have an account? Login!
+                                    </a>
+                                    </div>
+                                </div>
+                            </v-form>
+                        </template>
                     </div>
-    
-                    <p class="text-h5">LOGIN</p>
-    
-                    <v-form>
-                        <v-text-field
-                            class="mt-4"
-                            density="compact"
-                            label="Username"
-                            type="email"
-                            aria-label="Username"
-                            variant="outlined"
-                        ></v-text-field>
-    
-                        <v-text-field
-                            class="mt-4"
-                            density="compact"
-                            label="Password"
-                            type="password"
-                            aria-label="Password"
-                            variant="outlined"
-                        ></v-text-field>
-    
-                        <div class="flex items-center justify-between mt-4">
-                            <v-btn variant="text" class="text-sm text-gray-600 dark:text-gray-200 hover:text-gray-500">
-                                Forget Password?
-                            </v-btn>
-    
-                            <v-btn
-                                class="px-6 py-2 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-500 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50"
-                                @click="signIn"
-                            >
-                                Sign In
-                            </v-btn>
-                        </div>
-                    </v-form>
-                </v-card-text>
-    
-                <v-divider></v-divider>
-    
-                <v-card-actions class="flex items-center justify-center py-4 text-center bg-gray-50 dark:bg-gray-700">
-                    <span class="text-sm text-gray-600 dark:text-gray-200">Don't have an account? </span>
-                    <v-btn text class="mx-2 text-sm font-bold text-blue-500 dark:text-blue-400 hover:underline">
-                        Register
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-sheet>
-    </v-container>
+                </div>
+            </div>
+        </div>
+        <Snackbar ref="snackbar"></Snackbar>
+    </div>
 </template>
 
 <script setup>
-const signIn = () => {
-    // Handle sign-in logic here
-};
-</script>
+import { ref, computed, watch } from 'vue';
+import axios from 'axios';
+import Snackbar from '../Components/Snackbar.vue';
 
-<style scoped>
-/* You can add any additional styles here if needed */
-</style>
+const loading = ref(false)
+watch(loading, val => {
+    if(!val) return
+    setTimeout(() => (loading.value = false), 2000)
+})
+
+const isLogin = ref(false)
+const loginForm = ref(null)
+const registerForm = ref(null)
+const newUser = ref({})
+const showPassword = ref(false)
+const showConfirmPass = ref(false)
+const roles = ['Admin', 'User']
+const snackbar = ref(null)
+
+const passwordRules = [
+    (v) => !!v || 'Password is required',
+    (v) => (v && v.length >= 8) || 'Password must be at least 8 characters',
+]
+
+const confirmPassRules = computed(() => [
+    (v) => !!v || 'Please confirm your password',
+    (v) => v === newUser.value.password || 'Passwords do not match',
+])
+
+const loginBtn = async () => {
+    loading.value = true
+    const { valid } = await loginForm.value.validate()
+
+    if (!valid) {
+        loading.value = false
+        return
+    }
+
+    try {
+        await axios.get('/sanctum/csrf-cookie')
+        const res = await axios.post('/login', newUser.value)
+        console.log(res)
+        newUser.value = {}
+        window.location.href = '/' // Full page reload
+        // OR for SPA behavior:
+        // router.visit('/')
+    } catch (err) {
+        console.error('Login failed:', err)
+    } finally {
+        loading.value = false
+    }
+}
+
+const registerBtn = async () => {
+    loading.value = true
+    const { valid } = await registerForm.value.validate()
+    
+    if(!valid){
+        loading.value = false
+        return
+    }
+
+    try{
+        await axios.get('sanctum/csrf-cookie')
+        
+        const payload = {
+            first_name: newUser.value.first_name,
+            surname: newUser.value.surname,
+            username: newUser.value.username,
+            password: newUser.value.password,
+            password_confirmation: newUser.value.confirmPass,
+            role: newUser.value.role
+        }
+
+        const response = await axios.post('register', payload)
+        
+        if (response.data.message) {
+            snackbar.value.alertCustom('Registration Successful!')
+            newUser.value = {}
+        }
+    }
+    catch(err){
+        let errorMessage = 'Error registering user';
+        if (err.response?.data?.errors){
+            errorMessage = Object.values(err.response.data.errors)
+            .flat()
+            .join(' ')
+        } 
+        else if(err.response?.data?.message) {
+            errorMessage = err.response.data.message
+        }
+        
+        snackbar.value.alertCustom(errorMessage, 'error')
+        console.error('Registration error:', err)
+    } 
+    finally{
+        loading.value = false
+    }
+};
+
+const handleLogin = async () => {
+    const { valid } = await loginForm.value.validate()
+    if(!valid) return
+    try{
+        console.log('Logging in...')
+    } 
+    finally{
+    }
+}
+
+const handleRegister = async () => {
+    const { valid } = await registerForm.value.validate()
+    if(!valid) return
+    try{
+        console.log('Registering...')
+    }
+    finally{
+    }
+}
+
+const toggleForm = () => {
+    isLogin.value = !isLogin.value
+}
+</script>

@@ -12,9 +12,9 @@ class SalesRevenueImport implements ToCollection
      * @param Collection $rows
      */
     public function collection(Collection $rows){
-        foreach ($rows as $row) {
+        foreach($rows as $row){
             //skip empty rows
-            if($this->isEmptyRow($row)) {
+            if ($this->isEmptyRow($row)) {
                 continue;
             }
 
@@ -23,7 +23,8 @@ class SalesRevenueImport implements ToCollection
             $secondDateOfCollection = $this->convertDate($row[8] ?? null);
             $thirdDateOfCollection = $this->convertDate($row[10] ?? null);
             $fourthDateOfCollection = $this->convertDate($row[12] ?? null);
-            $fullyPaidDate = $this->convertDate($row[17] ?? null);
+            $remarks = $row[16] ?? null;
+            $fullyPaidDate = $this->extractFullyPaidDate($remarks);
 
             SalesRevenue::create([
                 'date_of_survey' => $dateOfSurvey,
@@ -41,44 +42,79 @@ class SalesRevenueImport implements ToCollection
                 'fourth_date_of_collection' => $fourthDateOfCollection,
                 'fourth_collection' => $this->cleanNumber($row[13] ?? null),
                 'total' => $this->cleanNumber($row[14] ?? null),
-                'receivable_bal' => $this->cleanNumber($row[15] ?? null),
-                'withholding_tax' => $row[16] ?? null,
+                'withholding_tax' => $this->cleanWithholdingTax($row[15] ?? null),
+                'remarks' => $row[16] ?? null,
                 'fully_paid_date' => $fullyPaidDate,
             ]);
         }
     }
 
+
+    private function extractFullyPaidDate($remarks) {
+        if (preg_match('/FULLY PAID\s+(\d{1,2}\/\d{1,2}\/\d{4})/i', $remarks, $matches)) {
+            return $this->convertDate($matches[1]);
+        }
+        return null;
+    }
     /**
      * Check if a row is empty
      */
-    private function isEmptyRow($row)
-    {
+    private function isEmptyRow($row){
         // Convert to array if it's a Collection
         $rowArray = $row instanceof Collection ? $row->toArray() : $row;
         
-        return empty(array_filter($rowArray, function ($value) {
+        return empty(array_filter($rowArray, function ($value){
             return $value !== null && $value !== '';
         }));
     }
 
-    private function cleanNumber($value)
-    {
-        if (is_null($value)) {
+    private function cleanNumber($value){
+        if(is_null($value) || $value === ''){
             return null;
         }
         
         // Remove thousands separators and convert to float
-        return (float) str_replace(',', '', $value);
+        return (float) str_replace(',', '', trim($value));
     }
 
-    private function convertDate($date)
-    {
-        if ($date) {
-            $dateTime = \DateTime::createFromFormat('F j, Y', $date);
-            if ($dateTime) {
+    private function convertDate($date){
+        if(empty($date)){
+            return null;
+        }
+
+        // Try different date formats
+        $formats = ['F j, Y', 'Y-m-d', 'm/d/Y', 'd/m/Y'];
+        
+        foreach($formats as $format){
+            $dateTime = \DateTime::createFromFormat($format, $date);
+            if($dateTime !== false){
                 return $dateTime->format('Y-m-d');
             }
         }
+        
+        return null;
+    }
+    private function cleanWithholdingTax($value){
+        if (empty($value)) {
+            return null;
+        }
+
+        // If already in "w/ X% TAX" format, keep as is
+        if (preg_match('/w\/\s*\d+%?\s*TAX/i', $value)) {
+            return strtoupper($value); // Standardize case to "w/ X% TAX"
+        }
+
+        // If value contains percentage (e.g., "2%", "5% tax")
+        if (preg_match('/(\d+%?)/i', $value, $matches)) {
+            $percentage = rtrim($matches[1], '%'); // Remove % if exists
+            return "w/ {$percentage}% TAX";
+        }
+
+        // For any other numeric value
+        if (is_numeric($value)) {
+            return "w/ {$value}% TAX";
+        }
+
         return null;
     }
 }

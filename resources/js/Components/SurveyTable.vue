@@ -13,7 +13,21 @@
                 variant="outlined"
                 v-model="file">
             </v-file-input>
-            <v-btn class="bg-green-500 text-white" @click="uploadFile">IMPORT FILE</v-btn>
+            <v-btn 
+                class="bg-green-500 text-white" 
+                @click="uploadFile"
+                :disabled="isLoading"
+                :loading="isLoading">
+                <template v-if="isLoading">
+                    <div class="flex items-center space-x-2">
+                        <div class="animate-bounce">📁</div>
+                        <span>IMPORTING...</span>
+                    </div>
+                </template>
+                <template v-else>
+                    IMPORT FILE
+                </template>
+            </v-btn>
             <v-text-field
                 hide-details
                 label="Search"
@@ -91,16 +105,16 @@
                                 <tr>
                                 <th class="bg-inherit font-sans text-center">Contact Person</th>
                                 <th class="bg-inherit font-sans text-center">Contact No.</th>
-                                <th class="bg-inherit font-sans text-center">Date Approved</th>
-                                <th class="bg-inherit font-sans text-center">Date Delivered</th>
+                                <th class="bg-inherit font-sans text-center">Thru</th>
+                                <!-- <th class="bg-inherit font-sans text-center">Date Delivered</th> -->
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td class="bg-inherit font-sans text-center">{{ item.contact_person }}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.contact_no }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.date_approved }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.date_delivered }}</td>
+                                    <td class="bg-inherit font-sans text-center">{{ item.thru }}</td>
+                                    <!-- <td class="bg-inherit font-sans text-center">{{ item.date_delivered }}</td> -->
                                 </tr>
                             </tbody>
                         </v-table>
@@ -109,12 +123,15 @@
                 </tr>
             </template>
         </v-data-table>
+        
+        <Snackbar ref="snackbar"></Snackbar>
     </v-container>
 </template>
 
 <script setup>
 import axios from 'axios';
 import { defineEmits, defineProps, ref } from 'vue';
+import Snackbar from './Snackbar.vue';
 
 const { headers, survey_data } = defineProps({
     headers: Array,
@@ -123,6 +140,8 @@ const { headers, survey_data } = defineProps({
 
 const search = ref('')
 const itemsPerPage = ref(15)
+const isLoading = ref(false)
+const snackbar = ref(null)
 
 const emit = defineEmits(['refresh-data', 'open-dialog', 'edit-data'])
 const addBtn = () => {
@@ -139,25 +158,28 @@ const onFileChange = (event) => {
 }
 
 const uploadFile = async () => {
-    if (!file.value) {
+    if(!file.value) {
         alert('Please select a file to upload.')
         return
     }
-
     const formData = new FormData()
     formData.append('file', file.value)
 
-    try {
+    try{
+        isLoading.value = true
         const response = await axios.post('/import_survey_data', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
         })
-        alert(response.data.message || 'File imported successfully!')
+        snackbar.value.alertImport()
         emit('refresh-data')
+        file.value = {}
     } catch (error) {
         console.error('Error uploading file:', error)
         alert('Error uploading file. Please try again.')
+    } finally {
+        isLoading.value = false
     }
 }
 </script>
