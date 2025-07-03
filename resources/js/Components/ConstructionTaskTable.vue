@@ -56,55 +56,18 @@
                 </v-tooltip>
             </div>
         </div>
-
+        <h1 class="p-4 font-sans indent-8 text-2xl">LIST(S) OF CONSTRUCTIONS</h1>
         <v-data-table
             class="font-sans"
             density="compact"
             fixed-footer
             fixed-header
             :headers="headers"
-            :items="sales_revenue_data"
+            :items="construction_projects_data"
             item-key="id"
             :search="search"
-            show-expand
             @dblclick:row="(item, event) => editData(event, item)"
             v-model:items-per-page="itemsPerPage">
-            <template v-slot:item.data-table-expand="{ internalItem, isExpanded, toggleExpand }">
-                <v-btn
-                    :append-icon="isExpanded(internalItem) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-                    :text="isExpanded(internalItem) ? 'Collapse' : 'More info'"
-                    size="small"
-                    variant="outlined"
-                    slim
-                    @click="toggleExpand(internalItem)" >
-                </v-btn>
-            </template>
-            <template v-slot:expanded-row="{ columns, item }">
-                <tr>
-                    <td :colspan="columns.length" class="py-2">
-                        <v-sheet rounded="lg" class="overflow-x-auto">
-                            <v-table density="compact">
-                                <thead>
-                                    <tr>
-                                        <th class="bg-inherit font-sans text-center">Receivable Bal</th>
-                                        <th class="bg-inherit font-sans text-center">Withholding Tax.</th>
-                                        <th class="bg-inherit font-sans text-center">Remarks</th>
-                                        <th class="bg-inherit font-sans text-center">Fully Paid Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="bg-inherit font-sans text-center">{{ item.receivable_bal }}</td>
-                                        <td class="bg-inherit font-sans text-center">{{ item.withholding_tax }}</td>
-                                        <td class="bg-inherit font-sans text-center">{{ item.remarks }}</td>
-                                        <td class="bg-inherit font-sans text-center">{{ item.fully_paid_date }}</td>
-                                    </tr>
-                                </tbody>
-                            </v-table>
-                        </v-sheet>
-                    </td>
-                </tr>
-            </template>
         </v-data-table>
 
         <Snackbar ref="snackbar"></Snackbar>
@@ -115,14 +78,14 @@
 import axios from 'axios';
 import { defineEmits, defineProps, ref } from 'vue';
 import Snackbar from './Snackbar.vue';
-import { fi } from 'vuetify/locale';
 
-const { headers, sales_revenue_data } = defineProps({
+const { headers, construction_projects_data } = defineProps({
     headers: Array,
-    sales_revenue_data: Array,
+    construction_projects_data: Array,
 })
+
 const search = ref('')
-const itemsPerPage = ref(12)
+const itemsPerPage = ref(15)
 const isLoading = ref(false)
 const snackbar = ref(null)
 
@@ -145,12 +108,12 @@ const uploadFile = async () => {
         alert('Please select a file to upload.')
         return
     }
-
     const formData = new FormData()
     formData.append('file', file.value)
 
     try{
-        const response = await axios.post('/import_sales_revenue_data', formData, {
+        isLoading.value = true
+        const response = await axios.post('/import_construction_projects_data', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -158,10 +121,11 @@ const uploadFile = async () => {
         snackbar.value.alertImport()
         emit('refresh-data')
         file.value = {}
-    }
-    catch(error){
+    } catch (error) {
         console.error('Error uploading file:', error)
         alert('Error uploading file. Please try again.')
+    } finally {
+        isLoading.value = false
     }
 }
 </script>

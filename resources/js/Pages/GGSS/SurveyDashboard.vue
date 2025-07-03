@@ -18,9 +18,9 @@
 </template>
 
 <script setup>
-import SummaryChart from '../Components/SummaryChart.vue'
-import MonthlyChart from '../Components/MonthlyChart.vue'
-import ExpensesChart from '../Components/ExpensesChart.vue';
+import SummaryChart from '../../Components/SummaryChart.vue'
+import MonthlyChart from '../../Components/MonthlyChart.vue'
+import ExpensesChart from '../../Components/ExpensesChart.vue';
 import { ref, onMounted } from 'vue'
 import axios from 'axios';
 

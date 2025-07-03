@@ -1,6 +1,16 @@
 <template>
     <h1 class="p-4 font-sans indent-8 text-2xl">LIST(S) OF SURVEY</h1>
 
+    <div v-if="currentUser && (currentUser.id === 1 || currentUser.id === 3)" class="ml-6 mb-4 flex items-center">
+        <v-checkbox
+            v-model="showAll"
+            label="Show all data"
+            hide-details
+            density="compact"
+            class="mr-2"
+            @change="fetchSurveyData"
+        />
+    </div>
     <SurveyTable
         :headers="headers"
         :survey_data="surveyData"
@@ -157,8 +167,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import SurveyTable from '../Components/SurveyTable.vue';
-import Snackbar from '../Components/Snackbar.vue';
+import SurveyTable from '../../Components/SurveyTable.vue';
+import Snackbar from '../../Components/Snackbar.vue';
 
 const headers = ref([
     { title: 'Date Started', value: 'date_started', align: 'center' },
@@ -184,11 +194,13 @@ const edit = ref({})
 const dialog = ref(false)
 const isEditMode = ref(false)
 const currentUser = ref(null)
+const showAll = ref(true) //default to showing all data
 
 const fetchCurrentUser = async () => {
     try{
         const res = await axios.get('/get_current_user')
         currentUser.value = res.data
+        console.log(res.data)
     } 
     catch(error){
         console.error('Error fetching user data', error)
@@ -204,7 +216,7 @@ const submitForm = async () => {
     to_update.data_process = !!to_update.data_process ? 1 : 0;
     to_update.plans = !!to_update.plans ? 1 : 0;
 
-    // Format dates only if they are not already formatted
+    //format dates only if they are not already formatted
     const dateFields = ['date_started', 'date_completed', 'date_approved', 'date_delivered'];
     dateFields.forEach(field => {
         if (to_update[field]) {
@@ -283,15 +295,18 @@ const closeAddDialog = () => {
 
 const fetchSurveyData = async () => {
     try{
-        const res = await axios.get('/get_survey_data')
-        surveyData.value = res.data
+        let params = {};
+        if(currentUser.value && (currentUser.value.id === 1 || currentUser.value.id === 3)){
+            params.show_all = showAll.value ? 1 : 0;
+        }
+        const res = await axios.get('/get_survey_data', { params });
+        surveyData.value = res.data;
         console.log(res.data);
     }
     catch(error){
         console.error('Error fetching Survey data', error);
-        
     }
-}
+};
 
 onMounted(() => {
     fetchSurveyData()

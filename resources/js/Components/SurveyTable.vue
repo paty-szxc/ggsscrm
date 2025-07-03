@@ -1,44 +1,46 @@
 <template>
-    <v-container>
-        <div class="flex justify-start mb-2 space-x-12">
-            <v-file-input
-                accept=".xlsx,.xls,.csv"
-                @change="onFileChange"
-                clearable
-                density="compact"
-                hide-details
-                max-width="25%"
-                prepend-inner-icon="mdi-paperclip"
-                prepend-icon=""
-                variant="outlined"
-                v-model="file">
-            </v-file-input>
-            <v-btn 
-                class="bg-green-500 text-white" 
-                @click="uploadFile"
-                :disabled="isLoading"
-                :loading="isLoading">
-                <template v-if="isLoading">
-                    <div class="flex items-center space-x-2">
-                        <div class="animate-bounce">📁</div>
-                        <span>IMPORTING...</span>
-                    </div>
-                </template>
-                <template v-else>
-                    IMPORT FILE
-                </template>
-            </v-btn>
-            <v-text-field
-                hide-details
-                label="Search"
-                prepend-inner-icon="mdi-magnify"
-                max-width="25%"
-                v-model="search"
-                >
-            </v-text-field>
-
-            <!-- <v-btn class="bg-blue-500 text-white"></v-btn> -->
-            <div class="ml-auto">
+    <v-container fluid>
+        <div class="flex flex-wrap gap-4 items-center mb-4">
+            <div class="flex-grow-1 min-w-[250px]">
+                <v-file-input
+                    accept=".xlsx,.xls,.csv"
+                    @change="onFileChange"
+                    clearable
+                    density="compact"
+                    hide-details
+                    prepend-inner-icon="mdi-paperclip"
+                    prepend-icon=""
+                    variant="outlined"
+                    v-model="file">
+                </v-file-input>
+            </div>
+            <div class="flex-shrink-0">
+                <v-btn 
+                    class="bg-green-500 text-white" 
+                    @click="uploadFile"
+                    :disabled="isLoading"
+                    :loading="isLoading">
+                    <template v-if="isLoading">
+                        <div class="flex items-center space-x-2">
+                            <div class="animate-bounce">📁</div>
+                            <span>IMPORTING...</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        IMPORT FILE
+                    </template>
+                </v-btn>
+            </div>
+            <div class="flex-grow-1 min-w-[250px]">
+                <v-text-field
+                    clearable
+                    hide-details
+                    label="Search"
+                    prepend-inner-icon="mdi-magnify"
+                    v-model="search">
+                </v-text-field>
+            </div>
+            <div class="flex-shrink-0">
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-fab
@@ -54,14 +56,14 @@
                 </v-tooltip>
             </div>
         </div>
-        <template>
+        <!-- <template>
             <v-file-input
                 density="compact" 
                 hide-details
                 variant="outlined" 
                 style="width: 350px">
             </v-file-input>
-        </template>
+        </template> -->
         <v-data-table
             class="font-sans"
             density="compact"

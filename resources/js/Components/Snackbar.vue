@@ -21,19 +21,19 @@ const timeout = ref(3500)
 
 const alertSuccess = () => {
     snackbarColor.value = 'green-darken-2'
-    snackbarMessage.value = 'New data has been added successfully. 🤩'
+    snackbarMessage.value = 'New data has been added successfully.'
     snackbar.value = true
 }
 
 const alertError = () => {
     snackbarColor.value = 'red-darken-2'
-    snackbarMessage.value = 'There was an error inserting your data. 😞'
+    snackbarMessage.value = 'There was an error inserting your data.'
     snackbar.value = true
 }
 
 const alertUpdate = () => {
     snackbarColor.value = 'green-darken-2'
-    snackbarMessage.value = 'Your data has been updated successfully. 😊'
+    snackbarMessage.value = 'Your data has been updated successfully.'
     snackbar.value = true
 }
 

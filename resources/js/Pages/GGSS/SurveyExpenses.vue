@@ -11,7 +11,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
-import ExpensesTable from '../Components/ExpensesTable.vue';
+import ExpensesTable from '../../Components/ExpensesTable.vue';
 
 const voucherHeaders = ref([
     { title: 'Voucher No.', value: 'voucher_no', align: 'center' },

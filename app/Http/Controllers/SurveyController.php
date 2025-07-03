@@ -11,9 +11,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class SurveyController extends Controller
 {
-    public function index(){
+    public function index(Request $req){
         $user = auth()->user();
-        if($user->role === 'Admin'){
+        $showAll = $req->input('show_all', 1);
+        if(($user->id == 1 || $user->id == 3) && $showAll){
             return Survey::orderBy('date_started', 'desc')->get();
         }
         else{
@@ -29,7 +30,7 @@ class SurveyController extends Controller
             'id' => $user->id,
             'username' => $user->username,
             'role' => $user->role,
-        ]);
+        ]); 
     }
 
     public function import(Request $req) {
@@ -77,8 +78,8 @@ class SurveyController extends Controller
             'survey' => isset($req->to_update['survey']) ? $req->to_update['survey'] : 0, 
             'data_process' => isset($req->to_update['data_process']) ? $req->to_update['data_process'] : 0,
             'plans' => isset($req->to_update['plans']) ? $req->to_update['plans'] : 0,
-            'date_approved' => $req->to_update['date_approved'],
-            'date_completed' => $req->to_update['date_completed'],
+            'date_approved' => $req->to_update['date_approved'] ?? null,
+            'date_completed' => $req->to_update['date_completed'] ?? null,
             'remarks' => $req->to_update['remarks'] ?? null,
             'contact_person' => $req->to_update['contact_person'] ?? null,
             'contact_no' => $req->to_update['contact_no'] ?? null, 

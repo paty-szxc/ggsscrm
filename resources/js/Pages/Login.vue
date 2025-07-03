@@ -26,14 +26,17 @@
                                         variant="outlined"
                                         v-model="newUser.password">
                                     </v-text-field>
-                                    <!-- <div class="flex justify-between items-center">
+                                    <div class="flex justify-between items-center">
                                     <v-checkbox
                                         label="Remember me"
                                         density="compact"
-                                        hide-details>
-                                    </v-checkbox>
-                                    <a href="#" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
-                                    </div> -->
+                                        hide-details
+                                        v-model="newUser.remember"
+                                    ></v-checkbox>
+                                    <!-- <a href="#" class="text-sm text-blue-600 hover:underline" @click.prevent="showForgotPassword">
+                                        Forgot password?
+                                    </a> -->
+                                    </div>
                                     <v-btn 
                                         block 
                                         class="bg-purple-600 text-white mt-2"
@@ -98,14 +101,14 @@
                                         variant="outlined"
                                         v-model="newUser.confirmPass">
                                     </v-text-field>
-                                    <v-autocomplete
+                                    <!-- <v-autocomplete
                                         class="w-full"
                                         density="compact"
                                         :items="roles"
                                         label="Role"
                                         variant="outlined"
                                         v-model="newUser.role">
-                                    </v-autocomplete>
+                                    </v-autocomplete> -->
                                     <v-btn 
                                         block 
                                         class="bg-purple-600 text-white mt-2"
@@ -253,4 +256,13 @@ const handleRegister = async () => {
 const toggleForm = () => {
     isLogin.value = !isLogin.value
 }
+
+const showForgotPassword = () => {
+    if(newUser.value.password){
+        snackbar.value.alertCustom(`Your password is: ${newUser.value.password}`, 'info');
+    } 
+    else{
+        snackbar.value.alertCustom('Please enter your password first.', 'warning');
+    }
+};
 </script>

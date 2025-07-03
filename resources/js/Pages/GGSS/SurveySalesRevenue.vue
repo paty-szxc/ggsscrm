@@ -185,12 +185,15 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+
+    <Snackbar ref="snackbar"></Snackbar>
 </template>
 
 <script setup>
 import { onMounted, ref, watch, nextTick, computed } from 'vue';
 import axios from 'axios';
-import SalesRevenue from '../Components/SalesRevenueTable.vue';
+import SalesRevenue from '../../Components/SalesRevenueTable.vue';
+import Snackbar from '../../Components/Snackbar.vue';
 
 const headers = ref([
     { title: 'Date of Survey', value: 'date_of_survey', align: 'center' },
@@ -244,10 +247,12 @@ const tempData = ref({})
 const dialog = ref(false)
 const edit = ref({})
 const isEditMode = ref(false)
+const snackbar = ref(null)
 
 const formattedTotal = computed(() => formatCurrency(tempData.value.total))
-const formattedReceivableBal = computed(() => formatCurrency(tempData.value.receivable_bal))
-
+const formattedReceivableBal = computed(() => {
+    return !tempData.value.receivable_bal ? '' : formatCurrency(tempData.value.receivable_bal);
+})
 const calculateTotals = () => {
     const parseAmount = (val) => {
         if (val === null || val === undefined || val === '') return 0
@@ -273,7 +278,7 @@ const calculateTotals = () => {
 const formatCurrency = (value) => {
     if (value === null || value === undefined || value === '') return '0.00'
     
-    // Remove existing commas if present, then parse
+    //remove existing commas if present, then parse
     const num = typeof value === 'string' 
         ? parseFloat(value.replace(/,/g, '')) 
         : Number(value)
@@ -287,17 +292,17 @@ const formatCurrency = (value) => {
 }
 
 const openEditDialog = (item) => {
-    // The data from the controller is already formatted with commas and decimals
-    // We need to parse it back to raw numbers for editing, then let the input handlers format it
+    //the data from the controller is already formatted with commas and decimals
+    //we need to parse it back to raw numbers for editing, then let the input handlers format it
     const formattedItem = { ...item }
     const currencyFields = ['project_cost', 'first_collection', 'second_collection', 'third_collection', 'fourth_collection', 'total', 'receivable_bal', 'withholding_tax']
     
     currencyFields.forEach(field => {
         if (formattedItem[field] !== null && formattedItem[field] !== undefined && formattedItem[field] !== '') {
-            // Parse the formatted string back to a number
+            //parse the formatted string back to a number
             const num = parseFloat(formattedItem[field].replace(/,/g, ''))
             if (!isNaN(num)) {
-                // Store the raw number, let the input handlers format it for display
+                //store the raw number, let the input handlers format it for display
                 formattedItem[field] = num.toString()
             }
         }
@@ -307,7 +312,7 @@ const openEditDialog = (item) => {
     isEditMode.value = true
     dialog.value = true
     
-    // Calculate totals immediately when dialog opens
+    //calculate totals immediately when dialog opens
     nextTick(() => {
         calculateTotals()
     })
@@ -363,26 +368,30 @@ const handleSubmit = async () => {
     if (to_update.third_collection === '') to_update.third_collection = null
     if (to_update.fourth_collection === '') to_update.fourth_collection = null
     
-    try {
-        if (isEditMode.value) {
+    try{
+        if(isEditMode.value){
             await axios({
                 method: 'post',
                 url: 'update_sales_revenue_data',
                 data: { to_update }
             })
-        } else {
+            snackbar.value.alertUpdate()
+        }
+        else{
             await axios({
                 method: 'post',
                 url: '/insert_sales_revenue_data', 
                 data: { to_update }
             })
+            snackbar.value.alertSuccess()
         }
         fetchSalesRevenueData()
         dialog.value = false
-        if (!isEditMode.value) {
+        if(!isEditMode.value){
             tempData.value = {}
         }
-    } catch(error) {
+    } 
+    catch(error){
         console.error('Error saving sales revenue data:', error)
         alert('Error occurred while saving data')
     }
@@ -405,7 +414,7 @@ const fetchSalesRevenueData = async () => {
     }
 }
 
-// Calculate totals when dialog opens
+//calculate totals when dialog opens
 watch(dialog, (newVal) => {
     if (newVal) {
         nextTick(() => {
@@ -429,13 +438,13 @@ watch(() => [
 )
 
 const handleCurrencyInput = (field) => {
-    // Remove all non-numeric characters except decimal point
+    //remove all non-numeric characters except decimal point
     let value = tempData.value[field]
     if (typeof value === 'string') {
-        // Remove commas and other non-numeric characters except decimal
+        //remove commas and other non-numeric characters except decimal
         value = value.replace(/[^\d.]/g, '')
         
-        // Ensure only one decimal point
+        //ensure only one decimal point
         const parts = value.split('.')
         if (parts.length > 2) {
             value = parts[0] + '.' + parts.slice(1).join('')
@@ -444,17 +453,17 @@ const handleCurrencyInput = (field) => {
         tempData.value[field] = value
     }
     
-    // Calculate totals after input
+    //calculate totals after input
     calculateTotals()
 }
 
 const formatCurrencyField = (field) => {
     let value = tempData.value[field]
     if (value && value !== '') {
-        // Parse the numeric value
+        //parse the numeric value
         const num = parseFloat(value)
         if (!isNaN(num)) {
-            // Format with commas for display
+            //format with commas for display
             tempData.value[field] = num.toLocaleString('en-US', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 2

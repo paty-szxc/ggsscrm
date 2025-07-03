@@ -2,7 +2,7 @@
 </template>
 
 <script setup>
-import Layout from '../Layouts/Layout.vue';
+import Companies from '../Layouts/Companies.vue';
 
-defineOptions({ layout: Layout })
+defineOptions({ layout: Companies })
 </script>
