@@ -37,6 +37,12 @@ const alertUpdate = () => {
     snackbar.value = true
 }
 
+const alertWarning = (message)  => {
+    snackbarColor.value = 'orange-accent-3'
+    snackbarMessage.value = message
+    snackbar.value = true
+}
+
 const alertCustom = (message) => {
     snackbarColor.value = 'cyan-accent-1'
     snackbarMessage.value = message
@@ -54,6 +60,7 @@ defineExpose({
     alertError,
     alertSuccess,
     alertUpdate,
+    alertWarning,
     alertImport
 }) 
 </script>

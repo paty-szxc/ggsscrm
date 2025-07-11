@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ConstructionProjectsController;
+use App\Http\Controllers\OfficeSuppliesController;
 use App\Http\Controllers\SalesRevenueController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\VoucherController;
@@ -62,12 +63,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('update_sales_revenue_data', [SalesRevenueController::class, 'update']);
     Route::get('monthly_totals', [SalesRevenueController::class, 'monthlyCosts']);
 
-    // EXPENSES DATA
+    //EXPENSES DATA
     Route::get('get_vouchers', [VoucherController::class, 'index']);
     Route::post('import_vouchers_data', [VoucherController::class, 'import']);
     Route::get('monthly_expenses', [VoucherController::class, 'monthlyExpenses']);
 
+    //QUOTATIONS
     Route::get('/generate_relo_survey_pdf', [RelocationSurveyController::class, 'generatePdf']);
+
+    Route::get('get_office_supplies', [OfficeSuppliesController::class, 'index']);
+    Route::post('insert_office_supplies', [OfficeSuppliesController::class, 'insert']);
+    Route::post('update_office_supplies', [OfficeSuppliesController::class, 'update']);
+
+    Route::get('get_house_and_lot', [OfficeSuppliesController::class, 'getHaL']);
+    Route::post('insert_house_and_lot', [OfficeSuppliesController::class, 'insertHaL']);
+    Route::get('get_company_vehicle', [OfficeSuppliesController::class, 'getCompVehicle']);
+    Route::post('insert_company_vehicle', [OfficeSuppliesController::class, 'insertCV']);
+
 
     //GCO routes
     Route::inertia('/construction_dashboard', 'GCO/ConstructionDashboard');

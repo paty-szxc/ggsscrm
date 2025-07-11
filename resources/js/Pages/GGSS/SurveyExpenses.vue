@@ -1,7 +1,7 @@
 <template>
     <div>
         <ExpensesTable
-            :refresh-data="fetchVouchers"
+            @refresh-data="fetchVouchers"
             :voucher_headers="voucherHeaders"
             :vouchers="vouchersData"
         />

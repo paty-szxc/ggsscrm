@@ -76,7 +76,7 @@ class Voucher extends Model
     }
 
     public function getDateAttribute($value){
-        return $value ? \Carbon\Carbon::parse($value)->format('M j, Y') : null;
+        return $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null;
     }
 
 

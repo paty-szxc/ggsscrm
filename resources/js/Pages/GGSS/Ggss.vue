@@ -1,5 +1,5 @@
 <template>
-    <div class="grid grid-cols-4 grid-rows-2 gap-10 px-16 md:py-16 justify-center">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-2 sm:px-4 md:px-8 lg:px-16 py-4 md:py-16 justify-center">
         <a :href="userIsAdmin ? '/dashboard' : null" 
             :class="{'block cursor-pointer flex flex-col items-center': true, 'disabled-link': !userIsAdmin}">
             <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">

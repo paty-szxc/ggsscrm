@@ -16,7 +16,7 @@ class VouchersMultiSheetImport implements WithMultipleSheets
     public function sheets(): array
     {
         // Allowed sheet names in lowercase
-        $allowedSheets = ['JAN 2025', 'FEB 2025', 'MAR 2025', 'APR 2025'];
+        $allowedSheets = ['JAN 2025', 'FEB 2025', 'MAR 2025', 'APR 2025', 'MAY 2025', 'JUNE 2025', 'JULY 2025'];
 
         $sheetImports = [];
 

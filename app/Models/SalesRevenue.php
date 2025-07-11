@@ -31,6 +31,7 @@ class SalesRevenue extends Model
         'receivable_bal',
         'withholding_tax',
         'fully_paid_date',
+        'remarks',
     ];
 
     protected static function boot(){

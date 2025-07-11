@@ -34,12 +34,21 @@
                         label="Location"
                         v-model="tempData.location">
                     </v-text-field>
-                    <v-text-field 
+                    <v-autocomplete
                         class="mt-3"
+                        density="compact"
                         hide-details
                         label="Type of Survey"
-                        v-model="tempData.type_of_survey">
-                    </v-text-field>
+                        :items="surveyTypes"
+                        v-model="tempData.type_of_survey"
+                        multiple
+                        chips
+                        clearable
+                        small-chips
+                        :menu-props="{ maxHeight: '300px' }"
+                        placeholder="Select survey type(s)"
+                        variant="outlined"
+                    />
                     <v-text-field 
                         class="mt-3"
                         hide-details
@@ -253,6 +262,18 @@ const formattedTotal = computed(() => formatCurrency(tempData.value.total))
 const formattedReceivableBal = computed(() => {
     return !tempData.value.receivable_bal ? '' : formatCurrency(tempData.value.receivable_bal);
 })
+
+const getWithholdingTaxAmount = (withholdingTax, projectCost) => {
+    if (!withholdingTax) return 0;
+    if (!isNaN(withholdingTax)) return parseFloat(withholdingTax);
+    const match = /([\d.]+)\s*%/.exec(withholdingTax);
+    if (match) {
+        const percent = parseFloat(match[1]);
+        return projectCost * (percent / 100);
+    }
+    return 0;
+};
+
 const calculateTotals = () => {
     const parseAmount = (val) => {
         if (val === null || val === undefined || val === '') return 0
@@ -265,14 +286,25 @@ const calculateTotals = () => {
     const second = parseAmount(tempData.value.second_collection)
     const third = parseAmount(tempData.value.third_collection)
     const fourth = parseAmount(tempData.value.fourth_collection)
-    
     const total = first + second + third + fourth
     const projectCost = parseAmount(tempData.value.project_cost)
-    const receivableBal = projectCost - total
+    const withholdingTax = tempData.value.withholding_tax
+    const withholdingTaxAmount = getWithholdingTaxAmount(withholdingTax, projectCost)
+    const receivableBal = projectCost - (total + withholdingTaxAmount)
 
-    // Update fields (store raw numbers but display formatted)
     tempData.value.total = total 
     tempData.value.receivable_bal = receivableBal
+
+    // Set fully paid date if receivable is zero and not already set
+    if (receivableBal <= 0 && !tempData.value.fully_paid_date) {
+        const dates = [
+            tempData.value.first_date_of_collection,
+            tempData.value.second_date_of_collection,
+            tempData.value.third_date_of_collection,
+            tempData.value.fourth_date_of_collection
+        ].filter(Boolean).sort()
+        tempData.value.fully_paid_date = dates[dates.length - 1] || null
+    }
 }
 
 const formatCurrency = (value) => {
@@ -291,38 +323,33 @@ const formatCurrency = (value) => {
         })
 }
 
-const openEditDialog = (item) => {
-    //the data from the controller is already formatted with commas and decimals
-    //we need to parse it back to raw numbers for editing, then let the input handlers format it
-    const formattedItem = { ...item }
-    const currencyFields = ['project_cost', 'first_collection', 'second_collection', 'third_collection', 'fourth_collection', 'total', 'receivable_bal', 'withholding_tax']
-    
-    currencyFields.forEach(field => {
-        if (formattedItem[field] !== null && formattedItem[field] !== undefined && formattedItem[field] !== '') {
-            //parse the formatted string back to a number
-            const num = parseFloat(formattedItem[field].replace(/,/g, ''))
-            if (!isNaN(num)) {
-                //store the raw number, let the input handlers format it for display
-                formattedItem[field] = num.toString()
-            }
-        }
-    })
-    
-    tempData.value = formattedItem
-    isEditMode.value = true
-    dialog.value = true
-    
-    //calculate totals immediately when dialog opens
-    nextTick(() => {
-        calculateTotals()
-    })
-};
+const surveyTypes = [
+    'Relocation Survey',
+    'Subdivision Survey',
+    'Topographic Survey',
+    'Hydrographic Survey',
+    'Verification Survey',
+    'Construction Survey',
+    'Lot Segregation Survey',
+    'Height Clearance Permit',
+    'Survey And Lot Plan Approval',
+    'As-Built Survey',
+    'Re-Survey',
+    'Consolidation Survey',
+    'Bathymetric',
+    'CAD Plotting',
+    'Titling Assistance',
+    'Land Consultancy',
+    'Right Of-Way Survey',
+    'Retainership'
+]
 
+//when opening add dialog, ensure type_of_survey is an array
 const openAddDialog = () => {
     tempData.value = {
         date_of_survey: null,
         location: '',
-        type_of_survey: '',
+        type_of_survey: [],
         receipt_no: '',
         project_cost: '',
         first_date_of_collection: '',
@@ -342,6 +369,38 @@ const openAddDialog = () => {
     isEditMode.value = false
     dialog.value = true
 }
+
+// When editing, convert type_of_survey string to array
+const openEditDialog = (item) => {
+    const formattedItem = { ...item }
+    const currencyFields = ['project_cost', 'first_collection', 'second_collection', 'third_collection', 'fourth_collection', 'total', 'receivable_bal', 'withholding_tax']
+    
+    currencyFields.forEach(field => {
+        if (formattedItem[field] !== null && formattedItem[field] !== undefined && formattedItem[field] !== '') {
+            //parse the formatted string back to a number
+            const num = parseFloat(formattedItem[field].replace(/,/g, ''))
+            if (!isNaN(num)) {
+                //store the raw number, let the input handlers format it for display
+                formattedItem[field] = num.toString()
+            }
+        }
+    })
+
+    if (formattedItem.type_of_survey && typeof formattedItem.type_of_survey === 'string') {
+        formattedItem.type_of_survey = formattedItem.type_of_survey.split('&').map(s => s.trim())
+    } else if (!formattedItem.type_of_survey) {
+        formattedItem.type_of_survey = []
+    }
+    
+    tempData.value = formattedItem
+    isEditMode.value = true
+    dialog.value = true
+    
+    //calculate totals immediately when dialog opens
+    nextTick(() => {
+        calculateTotals()
+    })
+};
 
 const handleSubmit = async () => {
     const to_update = { ...tempData.value }
@@ -367,6 +426,10 @@ const handleSubmit = async () => {
     if (to_update.second_collection === '') to_update.second_collection = null
     if (to_update.third_collection === '') to_update.third_collection = null
     if (to_update.fourth_collection === '') to_update.fourth_collection = null
+    
+    if (Array.isArray(to_update.type_of_survey)) {
+        to_update.type_of_survey = to_update.type_of_survey.join(', ')
+    }
     
     try{
         if(isEditMode.value){

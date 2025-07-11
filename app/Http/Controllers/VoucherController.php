@@ -16,7 +16,7 @@ class VoucherController extends Controller
      * Display a listing of the resource.
      */
     public function index(){
-        $data = Voucher::orderBy('date')->get();
+        $data = Voucher::orderBy('date', 'desc')->get();
 
         $data->transform(function($item){
             $item->employee_salary = number_format((float) $item->employee_salary, 2) !== '0.00' ? number_format((float) $item->employee_salary, 2) : '';
@@ -45,7 +45,7 @@ class VoucherController extends Controller
 
     public function import(Request $request){
         $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls|  max:2048',
+            'file' => 'required|mimes:xlsx,csv,xls|  max:10000',
         ]);
         try{
             // Excel::import(new VoucherImport(), $request->file('file'));
