@@ -14,7 +14,23 @@
                 variant="outlined"
                 v-model="file">
             </v-file-input>
-            <v-btn class="bg-green-500 text-white" @click="uploadFile">IMPORT FILE</v-btn>
+            <div class="flex-shrink-0">
+                <v-btn 
+                    class="bg-green-500 text-white" 
+                    @click="uploadFile"
+                    :disabled="isLoading"
+                    :loading="isLoading">
+                    <template v-if="isLoading">
+                        <div class="flex items-center space-x-2">
+                            <div class="animate-bounce">📁</div>
+                            <span>IMPORTING...</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        IMPORT FILE
+                    </template>
+                </v-btn>
+            </div>
             <v-text-field
                 clearable
                 hide-details
@@ -42,6 +58,7 @@
             </div>
         </div>
         <v-data-table
+            @dblclick:row="(item, event) => editData(event, item)"
             class="font-sans"
             density="compact"
             fixed-footer
@@ -143,8 +160,18 @@ const props = defineProps({
 
 const search = ref('')
 const itemsPerPage = ref(12)
-const emit = defineEmits(['refresh-data'])
+const isLoading = ref(false)
 const file = ref(null)
+
+const emit = defineEmits(['refresh-data', 'open-dialog', 'edit-data'])
+
+const editData = (item) => {
+    emit('edit-data', item.item)
+}
+
+const addBtn = () => {
+    emit('open-dialog')
+}
 
 const onFileChange = (event) => {
     file.value = event.target.files[0]

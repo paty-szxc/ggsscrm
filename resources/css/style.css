@@ -1,0 +1,4 @@
+/* Custom background for rows with receivable balance */
+.yellow-accent-2 {
+    background-color: #f0df4a !important; /* Light yellow, similar to Material yellow accent-2 */
+}

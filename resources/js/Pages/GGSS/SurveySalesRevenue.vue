@@ -16,7 +16,7 @@
                 {{ isEditMode ? 'Edit' : 'Add' }}
             </v-card-title>
             <v-card-text>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 item-start">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 item-start">
                     <v-date-input
                         class="mt-3"
                         density="compact"
@@ -254,7 +254,6 @@ const headers = ref([
 const salesRevenueData = ref([])
 const tempData = ref({})
 const dialog = ref(false)
-const edit = ref({})
 const isEditMode = ref(false)
 const snackbar = ref(null)
 
@@ -407,8 +406,8 @@ const handleSubmit = async () => {
 
     //function to parse currency values
     const parseCurrencyValue = (value) => {
-        if (value === null || value === undefined || value === '') return null
-        if (typeof value === 'number') return value
+        if(value === null || value === undefined || value === '') return null
+        if(typeof value === 'number') return value
         return parseFloat(value.replace(/,/g, ''))
     }
 
@@ -422,12 +421,12 @@ const handleSubmit = async () => {
     to_update.receivable_bal = parseCurrencyValue(to_update.receivable_bal)
 
     //set empty collection amounts to null
-    if (to_update.first_collection === '') to_update.first_collection = null
-    if (to_update.second_collection === '') to_update.second_collection = null
-    if (to_update.third_collection === '') to_update.third_collection = null
-    if (to_update.fourth_collection === '') to_update.fourth_collection = null
+    if(to_update.first_collection === '') to_update.first_collection = null
+    if(to_update.second_collection === '') to_update.second_collection = null
+    if(to_update.third_collection === '') to_update.third_collection = null
+    if(to_update.fourth_collection === '') to_update.fourth_collection = null
     
-    if (Array.isArray(to_update.type_of_survey)) {
+    if(Array.isArray(to_update.type_of_survey)){
         to_update.type_of_survey = to_update.type_of_survey.join(', ')
     }
     

@@ -112,10 +112,9 @@
 </template>
 
 <script setup>
-import axios from 'axios';
-import { defineEmits, defineProps, ref } from 'vue';
-import Snackbar from './Snackbar.vue';
-import { fi } from 'vuetify/locale';
+import axios from 'axios'
+import { defineEmits, defineProps, ref } from 'vue'
+import Snackbar from './Snackbar.vue'
 
 const { headers, sales_revenue_data } = defineProps({
     headers: Array,
@@ -128,12 +127,12 @@ const snackbar = ref(null)
 
 const emit = defineEmits(['refresh-data', 'open-dialog', 'edit-data'])
 const addBtn = () => {
-    emit('open-dialog');
-};
+    emit('open-dialog')
+}
 
 const editData = (item) => {
-    emit('edit-data', item.item);
-};
+    emit('edit-data', item.item)
+}
 const file = ref(null)
 
 const onFileChange = (event) => {

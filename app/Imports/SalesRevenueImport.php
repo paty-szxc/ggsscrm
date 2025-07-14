@@ -23,7 +23,7 @@ class SalesRevenueImport implements ToCollection
             $secondDateOfCollection = $this->convertDate($row[8] ?? null);
             $thirdDateOfCollection = $this->convertDate($row[10] ?? null);
             $fourthDateOfCollection = $this->convertDate($row[12] ?? null);
-            $remarks = $row[16] ?? null;
+            $remarks = $row[17] ?? null;
             $fullyPaidDate = $this->extractFullyPaidDate($remarks);
 
             SalesRevenue::create([
@@ -42,8 +42,8 @@ class SalesRevenueImport implements ToCollection
                 'fourth_date_of_collection' => $fourthDateOfCollection,
                 'fourth_collection' => $this->cleanNumber($row[13] ?? null),
                 'total' => $this->cleanNumber($row[14] ?? null),
-                'withholding_tax' => $this->cleanWithholdingTax($row[15] ?? null),
-                'remarks' => $row[16] ?? null,
+                'withholding_tax' => $this->cleanWithholdingTax($row[16] ?? null),
+                // 'remarks' => $row[17] ?? null,
                 'fully_paid_date' => $fullyPaidDate,
             ]);
         }
@@ -94,27 +94,51 @@ class SalesRevenueImport implements ToCollection
         
         return null;
     }
-    private function cleanWithholdingTax($value){
+    // private function cleanWithholdingTax($value){
+    //     if (empty($value)) {
+    //         return null;
+    //     }
+
+    //     // If already in "w/ X% TAX" format, keep as is
+    //     if (preg_match('/w\/\s*\d+%?\s*TAX/i', $value)) {
+    //         return strtoupper($value); // Standardize case to "w/ X% TAX"
+    //     }
+
+    //     // If value contains percentage (e.g., "2%", "5% tax")
+    //     if (preg_match('/(\d+%?)/i', $value, $matches)) {
+    //         $percentage = rtrim($matches[1], '%'); // Remove % if exists
+    //         return "w/ {$percentage}% TAX";
+    //     }
+
+    //     // For any other numeric value
+    //     if (is_numeric($value)) {
+    //         return "w/ {$value}% TAX";
+    //     }
+
+    //     return null;
+    // }
+    private function cleanWithholdingTax($value) {
         if (empty($value)) {
             return null;
         }
 
-        // If already in "w/ X% TAX" format, keep as is
-        if (preg_match('/w\/\s*\d+%?\s*TAX/i', $value)) {
-            return strtoupper($value); // Standardize case to "w/ X% TAX"
+        // Standardize the input by removing spaces after "w/" and making consistent
+        $value = preg_replace('/w\/\s*/i', 'w/', trim($value));
+        
+        // Check if already in correct format (case insensitive)
+        if (preg_match('/^w\/\d+%?\s*TAX$/i', $value)) {
+            // Extract the percentage number
+            preg_match('/\d+/', $value, $matches);
+            $percentage = $matches[0] ?? 0;
+            return "w/ {$percentage}% TAX"; // Return in standardized format
         }
 
-        // If value contains percentage (e.g., "2%", "5% tax")
-        if (preg_match('/(\d+%?)/i', $value, $matches)) {
-            $percentage = rtrim($matches[1], '%'); // Remove % if exists
+        // If value contains just a percentage number
+        if (preg_match('/^\d+%?$/', trim($value))) {
+            $percentage = rtrim(trim($value), '%');
             return "w/ {$percentage}% TAX";
         }
 
-        // For any other numeric value
-        if (is_numeric($value)) {
-            return "w/ {$value}% TAX";
-        }
-
-        return null;
+        return null; // Return null for any format we don't recognize
     }
 }

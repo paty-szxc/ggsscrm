@@ -48,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::inertia('/expenses', 'GGSS/SurveyExpenses');
     Route::inertia('/office_equipment', 'GGSS/OfficeEquipment');
     Route::inertia('/company_assets', 'GGSS/CompanyAsset');
+    Route::inertia('/survey_quotation', 'GGSS/SurveyQuotations');
 
     Route::post('/logout', [LoginController::class, 'destroy'])
     ->name('logout');
@@ -66,6 +67,8 @@ Route::middleware('auth:sanctum')->group(function () {
     //EXPENSES DATA
     Route::get('get_vouchers', [VoucherController::class, 'index']);
     Route::post('import_vouchers_data', [VoucherController::class, 'import']);
+    Route::post('insert_vouchers_data', [VoucherController::class, 'insert']);
+    Route::post('update_vouchers_data', [VoucherController::class, 'update']);
     Route::get('monthly_expenses', [VoucherController::class, 'monthlyExpenses']);
 
     //QUOTATIONS
