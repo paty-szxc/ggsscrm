@@ -46,6 +46,10 @@
             font-family: 'Times New Roman';
             font-size: 11pt;
         }
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
     </style>
 </head>
 <body>
@@ -88,6 +92,12 @@
                 </td>
             </tr>
         </table>
+    </div>
+    <!-- End of first page content -->
+    <div class="page-break"></div>
+    <div>
+        <p>The <b>Geopete Geodetic Surveying Services</b> is a Surveying firm that specialized in all fields of Surveying, the Boundary, Relocation, Verification, Topographic, Hydrographic, Mining, Construction, and Photogrammetry/Mapping Surveys all over the Philippines and ensures to provide the best and accurate services to our clients.</p>
+        <p>In this regards, we are pleased to offer you below quotation for the Relocation Survey as requested.</p>
 
         <h2 class="rounded">DELIVERABLES</h2>
         <p>Relocation Survey: </p>

@@ -28,7 +28,7 @@
                 <span>Sales & Revenue</span>
             </div>
         </a>
-        <a :href="userIsAdmin ? '/quotation' : null" 
+        <a :href="userIsAdmin ? '/survey_quotation' : null" 
             :class="{'block cursor-pointer flex flex-col items-center': true, 'disabled-link': !userIsAdmin}">
             <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
                 <img src="/public/images/quotation.png" alt="Quotations" 
