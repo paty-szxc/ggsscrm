@@ -71,6 +71,34 @@ class VoucherController extends Controller
         }
     }
 
+    public function insert(Request $req){
+        $formatDate = function($date){
+            return $date ? date('Y-m-d', strtotime($date)) : null;
+        };
+        $data = $req->input('to_update', []);
+        $data['date'] = $formatDate($data['date'] ?? null);
+        $voucher = Voucher::create($data);
+        return response()->json(['success' => true, 'voucher' => $voucher]);
+    }
+
+    public function update(Request $req){
+        $formatDate = function($date){
+            return $date ? date('Y-m-d', strtotime($date)) : null;
+        };
+        $data = $req->input('to_update', []);
+        $id = $data['id'] ?? null;
+        if (!$id) {
+            return response()->json(['success' => false, 'message' => 'ID is required for update'], 400);
+        }
+        $voucher = Voucher::find($id);
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Voucher not found'], 404);
+        }
+        $data['date'] = $formatDate($data['date'] ?? null);
+        $voucher->update($data);
+        return response()->json(['success' => true, 'voucher' => $voucher]);
+    }
+
     public function monthlyExpenses(){
         $currentYear = date('Y');
         $results = DB::table('vouchers')
@@ -141,31 +169,64 @@ class VoucherController extends Controller
         return response()->json($data);
     }
 
-    public function insert(Request $req){
-        $formatDate = function($date){
-            return $date ? date('Y-m-d', strtotime($date)) : null;
-        };
-        $data = $req->input('to_update', []);
-        $data['date'] = $formatDate($data['date'] ?? null);
-        $voucher = Voucher::create($data);
-        return response()->json(['success' => true, 'voucher' => $voucher]);
-    }
+    public function yearlyExpenses(){
+        $currentYear = date('Y');
+        
+        $result = DB::table('vouchers')
+            ->select(
+                DB::raw('SUM(COALESCE(employee_salary, 0)) as salary'),
+                DB::raw('SUM(COALESCE(employee_benefits, 0)) as benefits'),
+                DB::raw('SUM(COALESCE(meals_office_survey, 0)) as meals'),
+                DB::raw('SUM(COALESCE(dog_food, 0)) as dog_food'),
+                DB::raw('SUM(COALESCE(construction_survey_supplies, 0)) as construction'),
+                DB::raw('SUM(COALESCE(repairs_maintenance, 0)) as repairs'),
+                DB::raw('SUM(COALESCE(office_supplies, 0)) as office'),
+                DB::raw('SUM(COALESCE(gasoline_oil, 0)) as gas'),
+                DB::raw('SUM(COALESCE(utilities, 0)) as utilities'),
+                DB::raw('SUM(COALESCE(parking_fee, 0)) as parking'),
+                DB::raw('SUM(COALESCE(toll_fee, 0)) as toll'),
+                DB::raw('SUM(COALESCE(permits_certification_tax, 0)) as tax'),
+                DB::raw('SUM(COALESCE(transportation, 0)) as transpo'),
+                DB::raw('SUM(COALESCE(budget, 0)) as budget'),
+                DB::raw('SUM(
+                    COALESCE(employee_salary, 0) + 
+                    COALESCE(employee_benefits, 0) + 
+                    COALESCE(meals_office_survey, 0) + 
+                    COALESCE(dog_food, 0) + 
+                    COALESCE(construction_survey_supplies, 0) + 
+                    COALESCE(repairs_maintenance, 0) + 
+                    COALESCE(office_supplies, 0) + 
+                    COALESCE(gasoline_oil, 0) + 
+                    COALESCE(utilities, 0) + 
+                    COALESCE(parking_fee, 0) + 
+                    COALESCE(toll_fee, 0) + 
+                    COALESCE(permits_certification_tax, 0) + 
+                    COALESCE(transportation, 0) + 
+                    COALESCE(budget, 0)
+                ) as grand_total')
+            )
+            ->whereYear('date', $currentYear)
+            ->first();
 
-    public function update(Request $req){
-        $formatDate = function($date){
-            return $date ? date('Y-m-d', strtotime($date)) : null;
-        };
-        $data = $req->input('to_update', []);
-        $id = $data['id'] ?? null;
-        if (!$id) {
-            return response()->json(['success' => false, 'message' => 'ID is required for update'], 400);
-        }
-        $voucher = Voucher::find($id);
-        if (!$voucher) {
-            return response()->json(['success' => false, 'message' => 'Voucher not found'], 404);
-        }
-        $data['date'] = $formatDate($data['date'] ?? null);
-        $voucher->update($data);
-        return response()->json(['success' => true, 'voucher' => $voucher]);
+        return response()->json([
+            'year' => $currentYear,
+            'categories' => [
+                'salary' => $result->salary ?? 0,
+                'benefits' => $result->benefits ?? 0,
+                'meals' => $result->meals ?? 0,
+                'dog_food' => $result->dog_food ?? 0,
+                'construction' => $result->construction ?? 0,
+                'repairs' => $result->repairs ?? 0,
+                'office' => $result->office ?? 0,
+                'gas' => $result->gas ?? 0,
+                'utilities' => $result->utilities ?? 0,
+                'parking' => $result->parking ?? 0,
+                'toll' => $result->toll ?? 0,
+                'tax' => $result->tax ?? 0,
+                'transpo' => $result->transpo ?? 0,
+                'budget' => $result->budget ?? 0,
+            ],
+            'grand_total' => $result->grand_total ?? 0
+        ]);
     }
 }

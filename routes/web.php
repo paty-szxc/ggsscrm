@@ -63,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('insert_sales_revenue_data', [SalesRevenueController::class, 'insert']);
     Route::post('update_sales_revenue_data', [SalesRevenueController::class, 'update']);
     Route::get('monthly_totals', [SalesRevenueController::class, 'monthlyCosts']);
+    Route::get('yearly_sales', [SalesRevenueController::class, 'yearlySales']);
 
     //EXPENSES DATA
     Route::get('get_vouchers', [VoucherController::class, 'index']);
@@ -70,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('insert_vouchers_data', [VoucherController::class, 'insert']);
     Route::post('update_vouchers_data', [VoucherController::class, 'update']);
     Route::get('monthly_expenses', [VoucherController::class, 'monthlyExpenses']);
+    Route::get('yearly_expenses', [VoucherController::class, 'yearlyExpenses']);
 
     //QUOTATIONS
     Route::get('/generate_relo_survey_pdf', [RelocationSurveyController::class, 'generatePdf']);

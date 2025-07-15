@@ -11,19 +11,19 @@ import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 Chart.register(...registerables);
 
 const props = defineProps({
-	salesDataChart: {
+	yearlySalesChart: {
 		type: Object,
 		required: true
 	},
-	expDataChart: {
+	yearlyExpChart: {
 		type: Object,
 		required: true
 	},
-	salesDataOptions: {
+	yearlySalesOptions: {
 		type: Object,
 		default: () => ({})
 	},
-	expDataOptions: {
+	yearlyExpOptions: {
 		type: Object,
 		default: () => ({})
 	}
@@ -35,16 +35,16 @@ let chartInstance = null;
 const createChart = () => {
 	if (!chart.value) return;
 
-	// Merge datasets from both props
+	//merge datasets from both props
 	const datasets = [
-		...props.salesDataChart.datasets,
-		...props.expDataChart.datasets
+		...props.yearlySalesChart.datasets,
+		...props.yearlyExpChart.datasets
 	];
 
 	const config = {
 		type: 'bar',
 		data: {
-		labels: props.salesDataChart.labels || props.expDataChart.labels,
+		labels: props.yearlySalesChart.labels || props.yearlyExpChart.labels,
 		datasets: datasets
 		},
 		options: {
@@ -55,15 +55,15 @@ const createChart = () => {
 			},
 			title: {
 			display: true,
-			text: 'Sales vs Expenses'
+			text: 'Yearly Sales vs Expenses'
 			}
 		},
 		scales: {
 			x: { stacked: true },
 			y: { stacked: true }
 		},
-		...props.salesDataOptions,
-		...props.expDataOptions
+		...props.yearlySalesOptions,
+		...props.yearlyExpOptions
 		}
 	};
 
@@ -76,10 +76,10 @@ onBeforeUnmount(() => chartInstance?.destroy());
 
 //update chart when props change
 watch(() => [
-	props.salesDataChart,
-	props.expDataChart,
-	props.salesDataOptions,
-	props.expDataOptions
+	props.yearlySalesChart,
+	props.yearlyExpChart,
+	props.yearlySalesOptions,
+	props.yearlyExpOptions
 ], createChart, { deep: true });
 </script>
 

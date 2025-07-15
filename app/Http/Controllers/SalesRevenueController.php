@@ -216,4 +216,18 @@ class SalesRevenueController extends Controller
 
         return response()->json($data);
     }
+
+    public function yearlySales(){
+        $currentYear = date('Y');
+        
+        $totalSales = DB::table('sales_revenue')
+            ->select(DB::raw('SUM(project_cost) as yearly_total'))
+            ->whereYear('date_of_survey', $currentYear)
+            ->first();
+
+        return response()->json([
+            'year' => $currentYear,
+            'total_sales' => $totalSales->yearly_total ?: 0
+        ]);
+    }
 }
