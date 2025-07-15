@@ -174,6 +174,7 @@ const uploadFile = async () => {
                 'Content-Type': 'multipart/form-data',
             },
         })
+        console.log(response)
         snackbar.value.alertImport()
         emit('refresh-data')
         file.value = {}

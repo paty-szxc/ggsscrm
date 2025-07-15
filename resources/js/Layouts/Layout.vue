@@ -155,9 +155,9 @@ const userName = computed(() => currentUser.value?.username)
 
 const headerTitle = computed(() => {
     const url = usePage().url;
-    if (url === '/ggss') return 'Geopete Geodetic Surveying Services';
-    if (url === '/gco') return 'Geopete Constructions';
-    return 'GGSS Monitoring System';
+    if(url === '/ggss') return 'Geopete Geodetic Surveying Services';
+    if(url === '/gco') return 'Geopete Constructions';
+    return 'Monitoring System';
 });
 
 function logout() {

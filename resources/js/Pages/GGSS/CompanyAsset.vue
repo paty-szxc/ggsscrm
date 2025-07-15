@@ -130,7 +130,7 @@
                     <v-card-text>
                         <v-text-field
                             hide-details
-                            label="Address"
+                            label="Vehicle"
                             v-model="vehicle">
                         </v-text-field>
                         <v-text-field

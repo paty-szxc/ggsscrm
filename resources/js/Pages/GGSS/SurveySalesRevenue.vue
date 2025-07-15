@@ -34,20 +34,13 @@
                         label="Location"
                         v-model="tempData.location">
                     </v-text-field>
-                    <v-autocomplete
+                    <v-text-field
                         class="mt-3"
                         density="compact"
                         hide-details
                         label="Type of Survey"
-                        :items="surveyTypes"
                         v-model="tempData.type_of_survey"
-                        multiple
-                        chips
                         clearable
-                        small-chips
-                        :menu-props="{ maxHeight: '300px' }"
-                        placeholder="Select survey type(s)"
-                        variant="outlined"
                     />
                     <v-text-field 
                         class="mt-3"

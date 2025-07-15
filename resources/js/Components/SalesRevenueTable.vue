@@ -149,6 +149,7 @@ const uploadFile = async () => {
     formData.append('file', file.value)
 
     try{
+        isLoading.value = true
         const response = await axios.post('/import_sales_revenue_data', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',

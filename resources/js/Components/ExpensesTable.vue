@@ -187,6 +187,7 @@ const uploadFile = async () => {
     formData.append('file', file.value)
 
     try{
+        isLoading.value = true
         const response = await axios.post('/import_vouchers_data', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -198,6 +199,9 @@ const uploadFile = async () => {
     catch(error){
         console.error('Error uploading file:', error)
         alert('Error uploading file. Please try again.')
+    }
+    finally{
+        isLoading.value = false
     }
 }
 </script>

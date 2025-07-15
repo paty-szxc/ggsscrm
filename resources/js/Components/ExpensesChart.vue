@@ -58,7 +58,9 @@ watch(() => props.expensesChart, (newVal) => {
 <style scoped>
 .chart-container {
     position: relative;
-    height: 400px;
     width: 100%;
+    height: 50vw;
+    max-height: 400px;
+    min-height: 200px;
 }
 </style>
