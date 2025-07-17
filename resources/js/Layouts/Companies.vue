@@ -45,22 +45,41 @@
         <main>
             <div class="justify-center grid lg:grid-flow-col grid-rows-1 gap-12 px-16 md:py-16">
                 <a @click.prevent="goToGgss" class="block cursor-pointer">
-                    <img 
-                        src="/public/images/logo.png" 
-                        alt="GGSS" 
-                        class="h-64 shadow-xl/30 -inset-2 rounded-lg opacity-75 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
-                    <div class="m-4 text-center font-semibold">
-                        <span>Geopete Geodetic Surveying Services</span>
-                    </div>
+                    <v-tooltip 
+                        text="Go to GGSS"
+                        location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <div v-bind="props">
+                                <img 
+                                    src="/public/images/logo.png" 
+                                    alt="GGSS" 
+                                    class="h-64 shadow-xl/30 -inset-2 rounded-lg opacity-75 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                                <div class="m-4 text-center font-semibold">
+                                    <span>Geopete Geodetic Surveying Services</span>
+                                </div>
+                            </div>
+                        </template>
+                    </v-tooltip>
                 </a>
-                <a @click.prevent="goToGco" class="block cursor-pointer">
-                    <img 
-                        src="/public/images/gpc.png" 
-                        alt="GPC" 
-                        class="h-64 shadow-xl/30 -inset-2 rounded-lg opacity-75 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
-                    <div class="m-4 text-center font-semibold">
-                        <span>Geopete Construction</span>
-                    </div>
+                <a @click.prevent="isAllowedUser ? goToGco() : null" 
+                    :class="{ 'cursor-not-allowed opacity-50': !isAllowedUser }"
+                    class="block cursor-pointer">
+                    <v-tooltip 
+                        :text="!isAllowedUser ? 'Access restricted to authorized users only.' : 'Go to Geopete Construction'" 
+                        location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <div v-bind="props">  <!-- Activator div wraps content -->
+                                <img 
+                                    src="/public/images/gpc.png" 
+                                    alt="GPC" 
+                                    class="h-64 shadow-xl/30 -inset-2 rounded-lg opacity-75 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none"
+                                    :class="{ 'hover:-translate-y-0': !isAllowedUser }">
+                                <div class="m-4 text-center font-semibold">
+                                    <span>Geopete Construction</span>
+                                </div>
+                            </div>
+                        </template>
+                    </v-tooltip>
                 </a>
             </div>
     
@@ -88,6 +107,11 @@ const userAvatar = computed(() => {
         2: '/images/arnold.png',
     };
     return avatarMap[userId]
+});
+
+const isAllowedUser = computed(() => {
+    const userId = currentUser.value?.id;
+    return [1, 3, 4, 5, 6].includes(userId);
 });
 
 function logout() {

@@ -163,5 +163,8 @@ const uploadFile = async () => {
         console.error('Error uploading file:', error)
         alert('Error uploading file. Please try again.')
     }
+    finally{
+        isLoading.value = false
+    }
 }
 </script>

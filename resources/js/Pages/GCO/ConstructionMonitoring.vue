@@ -24,6 +24,62 @@
                     variant="outlined"
                     v-model="tempData.date_started"
                 />
+                <v-text-field
+                    class="mt-3"
+                    hide-details
+                    label="Location"
+                    v-model="tempData.location">
+                </v-text-field>
+                <v-text-field
+                    class="mt-3"
+                    hide-details
+                    label="Particulars"
+                    v-model="tempData.particulars">
+                </v-text-field>
+                <v-text-field
+                    class="mt-3"
+                    hide-details
+                    label="Processed By"
+                    v-model="tempData.processed_by">
+                </v-text-field>
+                <div style="display: flex; align-items: center;" class="gap-3">
+                    <span class="m-2">Processing of Permits</span>
+                    <v-checkbox
+                        color="primary"
+                        direction="horizontal" 
+                        density="compact" 
+                        hide-details 
+                        v-model="tempData.start_process"
+                        label="Start">
+                    </v-checkbox>
+                    <v-checkbox
+                        color="primary"
+                        direction="horizontal" 
+                        density="compact" 
+                        hide-details 
+                        v-model="tempData.end_process"
+                        label="End">
+                    </v-checkbox>
+                </div>
+                <div style="display: flex; align-items: center;" class="gap-3">
+                    <span class="m-2">Actual Construction</span>
+                    <v-checkbox
+                        color="primary"
+                        direction="horizontal" 
+                        density="compact" 
+                        hide-details 
+                        v-model="tempData.start_actual"
+                        label="Start">
+                    </v-checkbox>
+                    <v-checkbox
+                        color="primary"
+                        direction="horizontal" 
+                        density="compact" 
+                        hide-details 
+                        v-model="tempData.end_actual"
+                        label="End">
+                    </v-checkbox>
+                </div>
                 <v-date-input
                     class="mt-3"
                     density="compact"
@@ -37,26 +93,14 @@
                 <v-text-field
                     class="mt-3"
                     hide-details
-                    label="Client"
-                    v-model="tempData.client">
+                    label="Contact Person"
+                    v-model="tempData.contact_person">
                 </v-text-field>
                 <v-text-field
                     class="mt-3"
                     hide-details
-                    label="Location"
-                    v-model="tempData.location">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Type of Plan/Survey"
-                    v-model="tempData.type_of_plan_survey">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Duration"
-                    v-model="tempData.duration">
+                    label="Contact No."
+                    v-model="tempData.contact_no">
                 </v-text-field>
                 <v-text-field
                     class="mt-3"
@@ -94,12 +138,18 @@ import Snackbar from '../../Components/Snackbar.vue';
 
 const headers = ref([
     { title: 'Date Started', value: 'date_started', align: 'center' },
-    { title: 'Date Completed', value: 'date_completed', align: 'center' },
-    { title: 'Client', value: 'client', align: 'center' },
     { title: 'Location', value: 'location', align: 'center' },
-    { title: 'Type of Plan/Survey', value: 'type_of_plan_survey', align: 'center' },
-    { title: 'Duration', value: 'duration', align: 'center' },
-    { title: 'Remarks', value: 'remarks', align: 'center' }
+    { title: 'Particulars', value: 'particulars', align: 'center' },
+    { title: 'Processed By', value: 'processed_by', align: 'center' },
+    { title: 'Processing of Permits', align: 'center', children: [
+        { title: 'Start', value: 'start_process', align: 'center' },
+        { title: 'End', value: 'end_process', align: 'center' },
+    ]},
+    { title: 'Actual Construction', align: 'center', children: [
+        { title: 'Start', value: 'start_actual', align: 'center' },
+        { title: 'End', value: 'end_actual', align: 'center' },
+    ]},
+    { title: 'Date Completed/Delivered', value: 'date_completed', align: 'center' },
 ])
 
 const currentUser = ref(null)
@@ -112,7 +162,6 @@ const snackbar = ref(null)
 
 const submitForm = async () => {
     const to_update = { ...tempData.value }
-
     const dateFields = ['date_started', 'date_completed']
     dateFields.forEach(field => {
         if (to_update[field]) {
@@ -137,7 +186,6 @@ const submitForm = async () => {
     })
 
     const url = isEditMode.value ? 'update_construction_project_data' : 'insert_construction_project_data'
-
     axios({
         method: 'post',
         url,
@@ -183,13 +231,17 @@ const openEditDialog = (item) => {
     tempData.value = data
     isEditMode.value = true
     dialog.value = true
+    tempData.value.start_process = item.start_process == 1 ? true : false
+    tempData.value.end_process = item.end_process == 1 ? true : false
+    tempData.value.start_actual = item.start_actual == 1 ? true : false
+    tempData.value.end_actual = item.end_actual == 1 ? true : false
     edit.value = { ...item }
 }
 
 const closeAddDialog = () => {
     tempData.value = {}
     dialog.value = false
-    fetchSurveyData()
+    fetchConstructionsData()
 }
 
 const openAddDialog = () => {
@@ -258,3 +310,15 @@ onMounted(() => {
     fetchCurrentUser()
 })
 </script>
+
+<style scoped>
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Adjust spacing as needed */
+}
+.checkbox-inline {
+    margin: 0 8px 0 0 !important; /* Remove default margin and add right spacing */
+    min-width: 0; /* Prevents extra width */
+}
+</style>
