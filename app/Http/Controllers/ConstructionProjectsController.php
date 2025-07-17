@@ -30,58 +30,66 @@ class ConstructionProjectsController extends Controller
         ]);
     }
 
-    public function import(Request $request){
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
+    public function import(Request $req){
+        $req->validate([
+            'file' => 'required|mimes:xlsx,csv,xls|max:10240', //added max file size (10MB)
         ]);
 
-        Excel::import(new ConstructionProjectImport, $request->file('file'));
-        return back()->with('success', 'Construction projects imported successfully!');
-    }
-
-    private function calculateDuration($start, $end) {
-        if ($start && $end) {
-            $startDate = new \DateTime($start);
-            $endDate = new \DateTime($end);
-            return $startDate->diff($endDate)->days;
+        try{
+            $file = $req->file('file');
+            Excel::import(new ConstructionProjectImport, $file);
+            return back()->with('success', 'Construction projects imported successfully!');
         }
-        return null;
+        catch(\Exception $e){
+            $errorMessage = 'Import failed. ' . 
+                ($e instanceof \Maatwebsite\Excel\Validators\ValidationException ?
+                    'Please check your file format and data.' :
+                    $e->getMessage());
+            
+            return redirect()->back()
+                ->with('error', $errorMessage)
+                ->withInput();
+        }
     }
 
     public function insert(Request $req){
         $userId = Auth::id();
-        $dateStarted = $req->to_update['date_started'] ?? null;
-        $dateCompleted = $req->to_update['date_completed'] ?? null;
-        $duration = $this->calculateDuration($dateStarted, $dateCompleted);
         $insert = ConstructionProjects::create([
             'user_id' => $userId,
-            'date_started' => $dateStarted,
-            'date_completed' => $dateCompleted,
-            'client' => $req->to_update['client'] ?? null,
-            'location' => $req->to_update['location'] ?? null,
-            'type_of_plan_survey' => $req->to_update['type_of_plan_survey'] ?? null,
-            'duration' => $duration,
+            'date_started' => $req->to_update['date_started'],
+            'location' => $req->to_update['location'],
+            'particulars' => $req->to_update['particulars'],
+            'processed_by' => $req->to_update['processed_by'] ?? null, 
+            'start_process' => isset($req->to_update['start_process']) ? $req->to_update['start_process'] : 0, 
+            'end_process' => isset($req->to_update['end_process']) ? $req->to_update['end_process'] : 0,
+            'start_actual' => isset($req->to_update['start_actual']) ? $req->to_update['start_actual'] : 0,
+            'end_actual' => isset($req->to_update['end_actual']) ? $req->to_update['end_actual'] : 0,
+            'date_completed' => $req->to_update['date_completed'] ?? null,
+            'contact_person' => $req->to_update['contact_person'] ?? null,
+            'contact_no' => $req->to_update['contact_no'] ?? null, 
             'remarks' => $req->to_update['remarks'] ?? null,
         ]);
         return response()->json([
-            'message' => 'Construction data inserted successfully!',
-            'data' => $insert
-        ]);
+            'message' => 'Construction project data inserted successfully!',
+            'data' => $insert,
+        ], 201);
     }
 
     public function update(Request $req){
         $update = ConstructionProjects::find($req->to_update['id']);
-        $dateStarted = $req->to_update['date_started'] ?? $update->date_started;
-        $dateCompleted = $req->to_update['date_completed'] ?? $update->date_completed;
-        $duration = $this->calculateDuration($dateStarted, $dateCompleted);
         $update->update([
-            'date_started' => $dateStarted,
-            'date_completed' => $dateCompleted,
-            'client' => $req->to_update['client'] ?? $update->client,
-            'location' => $req->to_update['location'] ?? $update->location,
-            'type_of_plan_survey' => $req->to_update['type_of_plan_survey'],
-            'duration' => $duration,
-            'remarks' => $req->to_update['remarks'] ?? $update->remarks,
+            'date_started' => $req->to_update['date_started'],
+            'location' => $req->to_update['location'],
+            'particulars' => $req->to_update['particulars'],
+            'processed_by' => $req->to_update['processed_by'], 
+            'start_process' => isset($req->to_update['start_process']) ? $req->to_update['start_process'] : 0, 
+            'end_process' => isset($req->to_update['end_process']) ? $req->to_update['end_process'] : 0,
+            'start_actual' => isset($req->to_update['start_actual']) ? $req->to_update['start_actual'] : 0,
+            'end_actual' => isset($req->to_update['end_actual']) ? $req->to_update['end_actual'] : 0,
+            'date_completed' => $req->to_update['date_completed'],
+            'contact_person' => $req->to_update['contact_person'],
+            'contact_no' => $req->to_update['contact_no'], 
+            'remarks' => $req->to_update['remarks'],
         ]);
         return response()->json([
             'message' => 'Construction data updated successfully!',

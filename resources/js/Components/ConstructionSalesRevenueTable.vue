@@ -56,82 +56,52 @@
                 </v-tooltip>
             </div>
         </div>
-        <h1 class="p-4 font-sans indent-8 text-2xl">LIST(S) OF CONSTRUCTIONS</h1>
-        <!-- <v-data-table
-            class="font-sans"
-            density="compact"
-            fixed-footer
-            fixed-header
-            :headers="headers"
-            :items="construction_projects_data"
-            item-key="id"
-            :search="search"
-            @dblclick:row="(item, event) => editData(event, item)"
-            v-model:items-per-page="itemsPerPage">
-        </v-data-table> -->
+
         <v-data-table
             class="font-sans"
             density="compact"
             fixed-footer
             fixed-header
             :headers="headers"
-            :items="construction_projects_data"
+            :items="construction_sales_revenue"
             item-key="id"
             :search="search"
             show-expand
             @dblclick:row="(item, event) => editData(event, item)"
             v-model:items-per-page="itemsPerPage">
-            <template v-slot:item.start_process="{ item }">
-                <v-icon v-if="item.start_process === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
-            <template v-slot:item.end_process="{ item }">
-                <v-icon v-if="item.end_process === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
-            <template v-slot:item.start_actual="{ item }">
-                <v-icon v-if="item.start_actual === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
-            <template v-slot:item.end_actual="{ item }">
-                <v-icon v-if="item.end_actual === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
             <template v-slot:item.data-table-expand="{ internalItem, isExpanded, toggleExpand }">
-            <v-btn
-                :append-icon="isExpanded(internalItem) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-                :text="isExpanded(internalItem) ? 'Collapse' : 'More info'"
-                size="small"
-                variant="outlined"
-                slim
-                @click="toggleExpand(internalItem)" >
+                <v-btn
+                    :append-icon="isExpanded(internalItem) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                    :text="isExpanded(internalItem) ? 'Collapse' : 'More info'"
+                    size="small"
+                    variant="outlined"
+                    slim
+                    @click="toggleExpand(internalItem)" >
                 </v-btn>
             </template>
             <template v-slot:expanded-row="{ columns, item }">
                 <tr>
                     <td :colspan="columns.length" class="py-2">
-                    <v-sheet rounded="lg">
-                        <v-table density="compact">
-                            <thead>
-                                <tr>
-                                <th class="bg-inherit font-sans text-center">Total</th>
-                                <th class="bg-inherit font-sans text-center">Receivable Bal.</th>
-                                <th class="bg-inherit font-sans text-center">Others (Subcon)</th>
-                                <th class="bg-inherit font-sans text-center">Remarks</th>
-                                <th class="bg-inherit font-sans text-center">Fully Paid Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="bg-inherit font-sans text-center">{{ item.total }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.receivable_bal }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.others }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.remarks }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.fully_paid_date }}</td>
-                                </tr>
-                            </tbody>
-                        </v-table>
-                    </v-sheet>
+                        <v-sheet rounded="lg" class="overflow-x-auto">
+                            <v-table density="compact">
+                                <thead>
+                                    <tr>
+                                        <th class="bg-inherit font-sans text-center">Receivable Bal</th>
+                                        <th class="bg-inherit font-sans text-center">Others (Subcon)</th>
+                                        <th class="bg-inherit font-sans text-center">Remarks</th>
+                                        <th class="bg-inherit font-sans text-center">Fully Paid Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="bg-inherit font-sans text-center">{{ item.receivable_bal }}</td>
+                                        <td class="bg-inherit font-sans text-center">{{ item.others }}</td>
+                                        <td class="bg-inherit font-sans text-center">{{ item.remarks }}</td>
+                                        <td class="bg-inherit font-sans text-center">{{ item.fully_paid_date }}</td>
+                                    </tr>
+                                </tbody>
+                            </v-table>
+                        </v-sheet>
                     </td>
                 </tr>
             </template>
@@ -142,15 +112,14 @@
 </template>
 
 <script setup>
-import axios from 'axios';
-import { defineEmits, defineProps, ref } from 'vue';
-import Snackbar from './Snackbar.vue';
+import axios from 'axios'
+import { defineEmits, defineProps, ref } from 'vue'
+import Snackbar from './Snackbar.vue'
 
-const { headers, construction_projects_data } = defineProps({
+const { headers, construction_sales_revenue } = defineProps({
     headers: Array,
-    construction_projects_data: Array,
+    construction_sales_revenue: Array,
 })
-
 const search = ref('')
 const itemsPerPage = ref(12)
 const isLoading = ref(false)
@@ -158,12 +127,12 @@ const snackbar = ref(null)
 
 const emit = defineEmits(['refresh-data', 'open-dialog', 'edit-data'])
 const addBtn = () => {
-    emit('open-dialog');
-};
+    emit('open-dialog')
+}
 
 const editData = (item) => {
-    emit('edit-data', item.item);
-};
+    emit('edit-data', item.item)
+}
 const file = ref(null)
 
 const onFileChange = (event) => {
@@ -175,12 +144,13 @@ const uploadFile = async () => {
         alert('Please select a file to upload.')
         return
     }
+
     const formData = new FormData()
     formData.append('file', file.value)
 
     try{
         isLoading.value = true
-        const response = await axios.post('/import_construction_projects_data', formData, {
+        const response = await axios.post('/import_construction_sales_revenue', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -188,10 +158,12 @@ const uploadFile = async () => {
         snackbar.value.alertImport()
         emit('refresh-data')
         file.value = {}
-    } catch (error) {
+    }
+    catch(error){
         console.error('Error uploading file:', error)
         alert('Error uploading file. Please try again.')
-    } finally {
+    }
+    finally{
         isLoading.value = false
     }
 }

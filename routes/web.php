@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ConstructionProjectsController;
+use App\Http\Controllers\ConstructionSalesRevenueController;
 use App\Http\Controllers\OfficeSuppliesController;
 use App\Http\Controllers\SalesRevenueController;
 use App\Http\Controllers\SurveyController;
@@ -97,4 +98,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('import_construction_projects_data', [ConstructionProjectsController::class, 'import']);
     Route::post('insert_construction_project_data', [ConstructionProjectsController::class, 'insert']);
     Route::post('update_construction_project_data', [ConstructionProjectsController::class, 'update']);
+    Route::get('get_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'index']);
+    Route::post('import_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'import']);
+    Route::post('insert_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'insert']);
+    Route::post('update_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'update']);
 });  

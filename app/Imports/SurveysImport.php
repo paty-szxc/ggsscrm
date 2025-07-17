@@ -64,8 +64,11 @@ class SurveysImport implements ToModel, WithStartRow, WithMultipleSheets
      */
     public function sheets(): array{
         //return only the 'PROJECT MONITORING' sheet
+        // return [
+        //     'PROJECT MONITORING' => $this
+        // ];
         return [
-            'PROJECT MONITORING' => $this,
+            0 => $this // 0 is the index of the first sheet
         ];
     }
 

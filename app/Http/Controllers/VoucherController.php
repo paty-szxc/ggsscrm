@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class VoucherController extends Controller
 {
@@ -43,27 +44,64 @@ class VoucherController extends Controller
         return $data;
     }
 
+    // public function import(Request $request){
+    //     $request->validate([
+    //         'file' => 'required|mimes:xlsx,csv,xls|  max:10000',
+    //     ]);
+    //     try{
+    //         // Excel::import(new VoucherImport(), $request->file('file'));
+    //         Excel::import(new VouchersMultiSheetImport(), $request->file('file'));
+    //         if($request->wantsJson()){
+    //             return response()->json([
+    //                 'success' => true,
+    //                 'message' => 'Monthly voucher imported successfully!'
+    //             ]);
+    //         }
+    //         return redirect()->back()->with('success', 'Monthly voucher imported successfully!');
+    //     }
+    //     catch(\Exception $e){
+    //         Log::error('Import error: ' . $e->getMessage());
+    //         if($request->wantsJson()){
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Failed to import monthly voucher',
+    //                 'error' => $e->getMessage()
+    //             ], 500);
+    //         }
+    //         return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
+    //     }
+    // }
     public function import(Request $request){
         $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls|  max:10000',
+            'file' => 'required|mimes:xlsx,csv,xls|max:10000',
         ]);
-        try{
-            // Excel::import(new VoucherImport(), $request->file('file'));
-            Excel::import(new VouchersMultiSheetImport(), $request->file('file'));
+        try {
+            $file = $request->file('file');
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheetCount = $spreadsheet->getSheetCount();
+
+            if ($sheetCount > 1) {
+                // Multi-sheet import
+                Excel::import(new VouchersMultiSheetImport(), $file);
+            } else {
+                // Single-sheet import
+                Excel::import(new VoucherImport(), $file);
+            }
+
             if($request->wantsJson()){
                 return response()->json([
                     'success' => true,
-                    'message' => 'Monthly voucher imported successfully!'
+                    'message' => 'Voucher(s) imported successfully!'
                 ]);
             }
-            return redirect()->back()->with('success', 'Monthly voucher imported successfully!');
+            return redirect()->back()->with('success', 'Voucher(s) imported successfully!');
         }
         catch(\Exception $e){
             Log::error('Import error: ' . $e->getMessage());
             if($request->wantsJson()){
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to import monthly voucher',
+                    'message' => 'Failed to import voucher(s)',
                     'error' => $e->getMessage()
                 ], 500);
             }

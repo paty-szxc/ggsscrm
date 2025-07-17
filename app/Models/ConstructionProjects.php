@@ -16,10 +16,15 @@ class ConstructionProjects extends Model
         'user_id',
         'date_started',
         'date_completed',
-        'client',
         'location',
-        'type_of_plan_survey',
-        'duration',
+        'particulars',
+        'processed_by',
+        'start_process',
+        'end_process',
+        'start_actual',
+        'end_actual',
+        'contact_person',
+        'contact_no',
         'remarks',
     ];
 }

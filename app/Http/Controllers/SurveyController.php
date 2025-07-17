@@ -38,19 +38,20 @@ class SurveyController extends Controller
             'file' => 'required|mimes:xlsx,csv,xls|max:10240', // Added max file size (10MB)
         ]);
 
-        try {
+        try{
             Log::info('Starting survey import');
             
             $file = $req->file('file');
             Log::info('Importing file: ' . $file->getClientOriginalName());
             
-            Excel::import(new SurveysImport, $file);
+            Excel::import(new SurveysImport(), $file);
             Log::info('Survey import completed successfully');
             
             return redirect()->back()
                 ->with('success', 'Surveys imported successfully!');
                 
-        } catch (\Exception $e) {
+        } 
+        catch(\Exception $e){
             Log::error('Survey import failed: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
             
