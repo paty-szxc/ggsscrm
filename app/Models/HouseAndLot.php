@@ -14,6 +14,8 @@ class HouseAndLot extends Model
 
     protected $fillable = [
         'address',
-        'cost'
+        'cost',
+        'pdf_path',
+        'original_filename'
     ];
 }

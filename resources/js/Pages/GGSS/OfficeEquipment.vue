@@ -193,7 +193,7 @@ const openEditDialog = (event, { item }) => {
     dialog.value = true
 }
 
-const openAddDialog = () => {
+const openAddDialog = () => { 
     isEditMode.value = false
     dialog.value = true
 }

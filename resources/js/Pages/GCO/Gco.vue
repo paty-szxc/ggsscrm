@@ -85,10 +85,9 @@
             </v-tooltip>
         </a>
         <a :href="userIsAdmin ? '/construction_expenses' : null" 
-            :class="{'cursor-pointer flex flex-col items-center': true, 'cursor-not-allowed opacity-50': !userIsAdmin}">
+            :class="{'flex flex-col items-center': true, 'cursor-not-allowed opacity-20': userIsAdmin, 'cursor-not-allowed opacity-50': !userIsAdmin}">
             <v-tooltip
-                v-if="!userIsAdmin"
-                text="Access restricted to authorized users only."
+                text="Still Ongoing"
                 location="bottom">
                 <template v-slot:activator="{ props }">
                     <div v-bind="props">
@@ -102,7 +101,7 @@
                     </div>
                 </template>
             </v-tooltip>
-            <template v-if="userIsAdmin">
+            <!-- <template v-if="userIsAdmin">
                 <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
                     <img src="/public/images/construction-budget.png" alt="Expenses" 
                         :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-20': !userIsAdmin}">
@@ -110,7 +109,7 @@
                 <div class="m-4 font-semibold text-center">
                     <span>Expenses</span>
                 </div>
-            </template>
+            </template> -->
         </a>
     </div>
 </template>

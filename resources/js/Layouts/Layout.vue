@@ -103,11 +103,11 @@ const userIsAdmin = computed(() => {
     return usePage().props.auth?.user?.role === 'Admin'
 })
 
-const showBackButton = computed(() => !isHomePage.value && !isLoginPage.value);
+const showBackButton = computed(() => !isHomePage.value && !isLoginPage.value)
 
 //determine back button destination and tooltip
 const backButtonLink = computed(() => {
-    const currentPath = usePage().url;
+    const currentPath = usePage().url
     
     //if on a feature page, go back to company page
     if(currentPath.startsWith('/survey_monitoring') || 
@@ -118,7 +118,7 @@ const backButtonLink = computed(() => {
         currentPath.startsWith('/office_equipment') ||
         currentPath.startsWith('/company_assets')
     ){
-        return '/ggss';
+        return '/ggss'
     }
     //add similar conditions for GCO features if needed
     else if(currentPath.startsWith('/construction_dashboard') ||
@@ -126,43 +126,60 @@ const backButtonLink = computed(() => {
         currentPath.startsWith('/construction_revenue') ||
         currentPath.startsWith('/construction_expenses')
     ){
-        return '/gco';
+        return '/gco'
     }
     
     // Default to home if we're not sure
-    return '/';
-});
+    return '/'
+})
 
 
 const backButtonTooltip = computed(() => {
-    if (backButtonLink.value === '/ggss') return 'Back to GGSS';
-    if (backButtonLink.value === '/gco') return 'Back to GCO';
-    return 'Back to Home';
-});
+    if (backButtonLink.value === '/ggss') return 'Back to GGSS'
+    if (backButtonLink.value === '/gco') return 'Back to GCO'
+    return 'Back to Home'
+})
 
 const currentUser = computed(() => usePage().props.auth?.user)
 const userName = computed(() => currentUser.value?.username)
 // const userAvatar = computed(() => {
-//     const userId = currentUser.value?.id;
+//     const userId = currentUser.value?.id
     
 //     const avatarMap = {
 //         3: '/images/kuya.png',
 //         1: '/images/jen.png',
 //         2: '/images/arnold.png',
-//     };
+//     }
 //     return avatarMap[userId]
-// });
+// })
 
 const headerTitle = computed(() => {
-    const url = usePage().url;
-    if(url === '/ggss') return 'Geopete Geodetic Surveying Services';
-    if(url === '/gco') return 'Geopete Constructions';
-    return 'Monitoring System';
-});
+    const url = usePage().url
+    const ggssRoutes = [
+        '/dashboard',
+        '/survey_monitoring',
+        '/sales_and_revenue',
+        '/expenses',
+        '/office_equipment',
+        '/company_assets',
+        '/survey_quotation',
+    ]
+    const gcoRoutes = [
+        '/construction_dashboard',
+        '/construction_monitoring',
+        '/construction_revenue',
+        '/construction_expenses',
+    ]
+    if (url === '/ggss' || ggssRoutes.includes(url)) {
+        return 'Geopete Geodetic Surveying Services'
+    }
+    if(url === '/gco' || gcoRoutes.includes(url)) return 'Geopete Constructions'
+    return 'Monitoring System'
+})
 
 function logout() {
     axios.post('logout').then(() => {
         window.location.href = '/login'
-    });
+    })
 }
 </script>

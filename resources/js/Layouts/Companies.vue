@@ -111,7 +111,7 @@ const userAvatar = computed(() => {
 
 const isAllowedUser = computed(() => {
     const userId = currentUser.value?.id;
-    return [1, 3, 4, 5, 6].includes(userId);
+    return [1, 3, 5, 6].includes(userId);
 });
 
 function logout() {

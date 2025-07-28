@@ -180,6 +180,6 @@ import { usePage } from '@inertiajs/vue3';
 const userIsAdmin = computed(() => {
     const userId = usePage().props.auth?.user?.id;
     console.log('User  data:', userId);
-    return [1, 3, 4].includes(userId);
+    return [1, 3, 5].includes(userId);
 });
 </script>

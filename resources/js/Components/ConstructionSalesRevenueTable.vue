@@ -86,6 +86,7 @@
                             <v-table density="compact">
                                 <thead>
                                     <tr>
+                                        <th class="bg-inherit font-sans text-center">Total</th>
                                         <th class="bg-inherit font-sans text-center">Receivable Bal</th>
                                         <th class="bg-inherit font-sans text-center">Others (Subcon)</th>
                                         <th class="bg-inherit font-sans text-center">Remarks</th>
@@ -94,6 +95,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
+                                        <td class="bg-inherit font-sans text-center">{{ item.total }}</td>
                                         <td class="bg-inherit font-sans text-center">{{ item.receivable_bal }}</td>
                                         <td class="bg-inherit font-sans text-center">{{ item.others }}</td>
                                         <td class="bg-inherit font-sans text-center">{{ item.remarks }}</td>

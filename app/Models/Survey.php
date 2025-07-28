@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\SurveyProjectFile;
 
 class Survey extends Model
 {
@@ -30,6 +31,11 @@ class Survey extends Model
         'remarks',
         'thru'
     ];
+
+    public function files()
+    {
+        return $this->hasMany(SurveyProjectFile::class, 'survey_project_id', 'id'); // 'survey_project_id' is the foreign key in the files table
+    }
 }
 
 

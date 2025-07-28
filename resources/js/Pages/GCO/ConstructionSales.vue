@@ -21,27 +21,33 @@
                         class="mt-3"
                         density="compact"
                         hide-details
-                        label="Date of Survey"
+                        label="Date"
                         prepend-icon=""
                         prepend-inner-icon="mdi-calendar"
                         variant="outlined"
                         style="width: 100%"
-                        v-model="tempData.date_of_survey"
+                        v-model="tempData.date"
                     />
                     <v-text-field
                         class="mt-3"
                         hide-details
-                        label="Location"
-                        v-model="tempData.location">
+                        label="Client Name & Address"
+                        v-model="tempData.client_name_address">
                     </v-text-field>
                     <v-text-field
                         class="mt-3"
                         density="compact"
                         hide-details
-                        label="Type of Survey"
-                        v-model="tempData.type_of_survey"
+                        label="Particulars"
+                        v-model="tempData.particulars"
                         clearable
                     />
+                    <v-text-field 
+                        class="mt-3"
+                        hide-details
+                        label="Status of VAT"
+                        v-model="tempData.status_of_vat">
+                    </v-text-field>
                     <v-text-field 
                         class="mt-3"
                         hide-details
@@ -55,6 +61,30 @@
                         v-model="tempData.project_cost"
                         @input="handleCurrencyInput('project_cost')"
                         @blur="formatCurrencyField('project_cost')">
+                    </v-text-field>
+                    <v-text-field 
+                        class="mt-3"
+                        hide-details
+                        label="Amount (Gross of VAT)"
+                        v-model="tempData.amount_gross_of_vat"
+                        @input="handleCurrencyInput('amount_gross_of_vat')"
+                        @blur="formatCurrencyField('amount_gross_of_vat')">
+                    </v-text-field>
+                    <v-text-field 
+                        class="mt-3"
+                        hide-details
+                        label="Net of VAT"
+                        v-model="tempData.net_of_vat"
+                        @input="handleCurrencyInput('net_of_vat')"
+                        @blur="formatCurrencyField('net_of_vat')">
+                    </v-text-field>
+                    <v-text-field 
+                        class="mt-3"
+                        hide-details
+                        label="VAT"
+                        v-model="tempData.vat"
+                        @input="handleCurrencyInput('vat')"
+                        @blur="formatCurrencyField('vat')">
                     </v-text-field>
                     <v-date-input 
                         class="mt-3"
@@ -149,8 +179,8 @@
                     <v-text-field 
                         class="mt-3"
                         hide-details
-                        label="Withholding Tax"
-                        v-model="tempData.withholding_tax">
+                        label="Others (Subcon)"
+                        v-model="tempData.others">
                     </v-text-field>
                     <v-text-field 
                         class="mt-3"

@@ -149,7 +149,7 @@ const registerForm = ref(null)
 const newUser = ref({})
 const showPassword = ref(false)
 const showConfirmPass = ref(false)
-const roles = ['Admin', 'User']
+const roles = ['Admin', 'Encoder', '']
 const snackbar = ref(null)
 
 const passwordRules = [
@@ -173,7 +173,7 @@ const loginBtn = async () => {
 
     try {
         await axios.get('/sanctum/csrf-cookie')
-        const res = await axios.post('/login', newUser.value)
+        const res = await axios.post('login', newUser.value)
         console.log(res)
         newUser.value = {}
         window.location.href = '/' // Full page reload
@@ -204,7 +204,6 @@ const registerBtn = async () => {
             username: newUser.value.username,
             password: newUser.value.password,
             password_confirmation: newUser.value.confirmPass,
-            role: newUser.value.role
         }
 
         const response = await axios.post('register', payload)

@@ -56,14 +56,6 @@
                 </v-tooltip>
             </div>
         </div>
-        <!-- <template>
-            <v-file-input
-                density="compact" 
-                hide-details
-                variant="outlined" 
-                style="width: 350px">
-            </v-file-input>
-        </template> -->
         <v-data-table
             class="font-sans"
             density="compact"
@@ -74,19 +66,27 @@
             item-key="id"
             :search="search"
             show-expand
-            @dblclick:row="(item, event) => editData(event, item)"
+            @dblclick:row="(event, { item }) => editData(item)"
             v-model:items-per-page="itemsPerPage">
             <template v-slot:item.survey="{ item }">
                 <v-icon v-if="item.survey === 1" color="blue">mdi-check-circle</v-icon>
                 <v-icon v-else color="red">mdi-close-circle</v-icon>
             </template>
-            <template v-slot:item.data_process="{ item }">
+            <!-- <template v-slot:item.data_process="{ item }">
                 <v-icon v-if="item.data_process === 1" color="blue">mdi-check-circle</v-icon>
                 <v-icon v-else color="red">mdi-close-circle</v-icon>
             </template>
             <template v-slot:item.plans="{ item }">
                 <v-icon v-if="item.plans === 1" color="blue">mdi-check-circle</v-icon>
                 <v-icon v-else color="red">mdi-close-circle</v-icon>
+            </template> -->
+            <template v-slot:item.files="{ item }">
+                <v-icon 
+                    @click.stop="$emit('open-pdf-dialog', item)"
+                    class="cursor-pointer" 
+                    color="amber-accent-1">
+                    mdi-folder
+                </v-icon>
             </template>
             <template v-slot:item.data-table-expand="{ internalItem, isExpanded, toggleExpand }">
             <v-btn
@@ -105,6 +105,7 @@
                         <v-table density="compact">
                             <thead>
                                 <tr>
+                                <th class="bg-inherit font-sans text-center">Remarks</th>
                                 <th class="bg-inherit font-sans text-center">Contact Person</th>
                                 <th class="bg-inherit font-sans text-center">Contact No.</th>
                                 <th class="bg-inherit font-sans text-center">Thru</th>
@@ -113,6 +114,7 @@
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td class="bg-inherit font-sans text-center">{{ item.remarks }}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.contact_person }}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.contact_no }}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.thru }}</td>
@@ -145,18 +147,18 @@ const itemsPerPage = ref(15)
 const isLoading = ref(false)
 const snackbar = ref(null)
 
-const emit = defineEmits(['refresh-data', 'open-dialog', 'edit-data'])
+const emit = defineEmits(['refresh-data', 'open-dialog', 'edit-data', 'open-pdf-dialog'])
 const addBtn = () => {
     emit('open-dialog');
-};
+}
 
 const editData = (item) => {
-    emit('edit-data', item.item);
+    emit('edit-data', item);
 };
 const file = ref(null)
 
 const onFileChange = (event) => {
-    file.value = event.target.files[0]
+    file.value = event.target.files[0] || null
 }
 
 const uploadFile = async () => {
