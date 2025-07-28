@@ -29,11 +29,6 @@ class RegisterController extends Controller {
                     Rules\Password::min(8)
                         ->letters()
                 ],
-                'role' => [
-                    'required',
-                    'string',
-                    Rule::in(['Admin', 'User'])
-                ]
             ]);
 
             DB::beginTransaction();
@@ -42,7 +37,6 @@ class RegisterController extends Controller {
                 'surname' => $validated['surname'],
                 'username' => $validated['username'],
                 'password' => Hash::make($validated['password']),
-                'role' => $validated['role']
             ]);
             DB::commit();
             return response()->json(['message' => $req->first_name . ' successfully registered'], 200);
