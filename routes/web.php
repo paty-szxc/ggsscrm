@@ -43,13 +43,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::inertia('/gco', 'GCO/Gco');
 
     //GGSS routes
-    Route::inertia('/dashboard', 'GGSS/SurveyDashboard');
-    Route::inertia('/survey_monitoring', 'GGSS/SurveyMonitoring');
-    Route::inertia('/sales_and_revenue', 'GGSS/SurveySalesRevenue');
-    Route::inertia('/expenses', 'GGSS/SurveyExpenses');
-    Route::inertia('/office_equipment', 'GGSS/OfficeEquipment');
-    Route::inertia('/company_assets', 'GGSS/CompanyAsset');
-    Route::inertia('/survey_quotation', 'GGSS/SurveyQuotations');
+    Route::group(['headerTitle' => 'Geopete Geodetic Surveying Services'], function() {
+        Route::inertia('/dashboard', 'GGSS/SurveyDashboard');
+        Route::inertia('/survey_monitoring', 'GGSS/SurveyMonitoring');
+        Route::inertia('/sales_and_revenue', 'GGSS/SurveySalesRevenue');
+        Route::inertia('/expenses', 'GGSS/SurveyExpenses');
+        Route::inertia('/office_equipment', 'GGSS/OfficeEquipment');
+        Route::inertia('/company_assets', 'GGSS/CompanyAsset');
+        Route::inertia('/survey_quotation', 'GGSS/SurveyQuotations');
+    });
 
     Route::post('/logout', [LoginController::class, 'destroy'])
     ->name('logout');
@@ -83,15 +85,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('get_house_and_lot', [OfficeSuppliesController::class, 'getHaL']);
     Route::post('insert_house_and_lot', [OfficeSuppliesController::class, 'insertHaL']);
+    Route::put('update_house_and_lot/{id}', [OfficeSuppliesController::class, 'updateHaL']);
     Route::get('get_company_vehicle', [OfficeSuppliesController::class, 'getCompVehicle']);
     Route::post('insert_company_vehicle', [OfficeSuppliesController::class, 'insertCV']);
+    Route::put('update_company_vehicle/{id}', [OfficeSuppliesController::class, 'updateCV']);
 
 
     //GCO routes
-    Route::inertia('/construction_dashboard', 'GCO/ConstructionDashboard');
-    Route::inertia('/construction_monitoring', 'GCO/ConstructionMonitoring');
-    Route::inertia('/construction_revenue', 'GCO/ConstructionSales');
-    Route::inertia('/construction_expenses', 'GCO/ConstructionExpenses');
+    Route::group(['headerTitle' => 'Geopete Construction'], function() {
+        Route::inertia('/construction_dashboard', 'GCO/ConstructionDashboard');
+        Route::inertia('/construction_monitoring', 'GCO/ConstructionMonitoring');
+        Route::inertia('/construction_revenue', 'GCO/ConstructionSales');
+        Route::inertia('/construction_expenses', 'GCO/ConstructionExpenses');
+    });
 
     Route::get('get_construction_project_data', [ConstructionProjectsController::class, 'index']);
     Route::get('get_current_user', [ConstructionProjectsController::class, 'getCurrentUser']);
@@ -102,4 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('import_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'import']);
     Route::post('insert_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'insert']);
     Route::post('update_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'update']);
+    Route::get('construction_monthly_totals', [ConstructionSalesRevenueController::class, 'monthlyCosts']);
+
+    Route::get('construction_monthly_expenses', [ConstructionSalesRevenueController::class, 'monthlyExpenses']);
 });  

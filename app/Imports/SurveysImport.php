@@ -27,6 +27,8 @@ class SurveysImport implements ToModel, WithStartRow, WithMultipleSheets
         }
 
         $dateStarted = $this->convertDate($row[1] ?? null);
+        $startOfDataProcess = $this->convertDate($row[7] ?? null);
+        $endOfDataProcess = $this->convertDate($row[8] ?? null);
         $dateApproved = $this->convertDate($row[9] ?? null);
         $dateCompleted = $this->convertDate($row[10] ?? null);
 
@@ -39,8 +41,8 @@ class SurveysImport implements ToModel, WithStartRow, WithMultipleSheets
             'area' => $row[4] ?? null,
             'processed_by' => $row[5] ?? null,
             'survey' => $this->convertCheckbox($row[6] ?? null),
-            'data_process' => $this->convertCheckbox($row[7] ?? null),
-            'plans' => $this->convertCheckbox($row[8] ?? null),
+            'data_process' => $startOfDataProcess,
+            'plans' => $endOfDataProcess,
             'date_approved' => $dateApproved,
             'remarks' => $row[11] ?? null,
             'contact_person' => $row[12] ?? null,

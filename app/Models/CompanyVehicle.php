@@ -14,6 +14,8 @@ class CompanyVehicle extends Model
 
     protected $fillable = [
         'vehicle_name',
-        'cost'
+        'cost',
+        'pdf_path',
+        'original_filename'
     ];
 }
