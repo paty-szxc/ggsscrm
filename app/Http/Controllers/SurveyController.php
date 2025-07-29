@@ -7,7 +7,9 @@ use App\Models\Survey;
 use App\Imports\SurveysImport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Models\SurveyProjectFile;
 
 class SurveyController extends Controller
 {
@@ -15,11 +17,12 @@ class SurveyController extends Controller
         $user = auth()->user();
         $showAll = $req->input('show_all', 1);
         if(($user->id == 1 || $user->id == 3) && $showAll){
-            return Survey::orderBy('date_started', 'desc')->get();
+            return Survey::orderBy('date_started', 'desc')->with('files')->get();
         }
         else{
             return Survey::where('user_id', $user->id)
-            ->orderBy('date_started', 'asc')
+            ->orderBy('date_started', 'desc')
+            ->with('files')
             ->get();
         }
     }
@@ -77,8 +80,8 @@ class SurveyController extends Controller
             'area' => $req->to_update['area'] ?? null, 
             'processed_by' => $req->to_update['processed_by'] ?? null, 
             'survey' => isset($req->to_update['survey']) ? $req->to_update['survey'] : 0, 
-            'data_process' => isset($req->to_update['data_process']) ? $req->to_update['data_process'] : 0,
-            'plans' => isset($req->to_update['plans']) ? $req->to_update['plans'] : 0,
+            'data_process' => $req->to_update['data_process'] ?? null,
+            'plans' => $req->to_update['plans'] ?? null,
             'date_approved' => $req->to_update['date_approved'] ?? null,
             'date_completed' => $req->to_update['date_completed'] ?? null,
             'remarks' => $req->to_update['remarks'] ?? null,
@@ -93,6 +96,8 @@ class SurveyController extends Controller
     }
 
     public function update(Request $req){
+        // return $req;
+
         // return $req->to_update['remarks'];
         $survey = Survey::find($req->to_update['id']);
 
@@ -105,8 +110,8 @@ class SurveyController extends Controller
             'area' => $req->to_update['area'],
             'processed_by' => $req->to_update['processed_by'],
             'survey' => isset($req->to_update['survey']) ? $req->to_update['survey'] : 0,
-            'data_process' => isset($req->to_update['data_process']) ? $req->to_update['data_process'] : 0,
-            'plans' => isset($req->to_update['plans']) ? $req->to_update['plans'] : 0,
+            'data_process' => $req->to_update['data_process'],
+            'plans' => $req->to_update['plans'],
             'date_approved' => $req->to_update['date_approved'],
             'date_completed' => $req->to_update['date_completed'],
             'remarks' => $req->to_update['remarks'],
@@ -115,4 +120,90 @@ class SurveyController extends Controller
             'thru' => $req->to_update['thru'],
         ]);
     }
+    
+
+    public function upload(Request $request){
+        // return $request; 
+        // return $request->hasFile('files');
+        // 1. Validate the incoming request, including the survey_project_id
+        $request->validate([
+            // 'survey_project_id' => 'required|exists:survey_projects,id', // Ensure it exists in the projects table
+            'files' => 'required|array',
+            'files.*' => 'file|mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt|max:104857600',
+        ], [
+            // 'survey_project_id.exists' => 'The selected survey project does not exist.',
+            'files.*.mimes' => 'The :attribute must be a file of type: :values.',
+            'files.*.max' => 'The :attribute may not be greater than :max kilobytes.',
+        ]);
+
+        //make dynamic, if insert get last id if edit get the current id
+        $edit_survey_id = $request->input('survey_project_id');
+        $lastId = Survey::max('id') + 1;
+        $surveyProjectId = $edit_survey_id ? $edit_survey_id : $lastId;
+        // return $surveyProjectId;
+        $uploadedFileDetails = [];
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $mimeType = $file->getMimeType();
+                $fileSize = $file->getSize();
+                $storedName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('survey_files', $storedName, 'public');
+
+                //save file metadata to the database, linking it to the survey project
+                $fileEntry = SurveyProjectFile::create([
+                    'survey_project_id' => $surveyProjectId, // Assign the received ID
+                    'original_name' => $originalName,
+                    'stored_name' => $storedName,
+                    'path' => $path,
+                    'mime_type' => $mimeType,
+                    'size' => $fileSize,
+                ]);
+
+                $uploadedFileDetails[] = [
+                    'id' => $fileEntry->id,
+                    'original_name' => $originalName,
+                    'path' => Storage::url($path)
+                ];
+            }
+        }
+        return response()->json([
+            'message' => 'Files uploaded successfully!',
+            'uploaded_files' => $uploadedFileDetails,
+        ], 200);
+    }
+
+    // public function remove($id) // Accept route parameter directly
+    // {
+    //     $file = SurveyProjectFile::find($id); // Find by route parameter
+
+    //     if (!$file) {
+    //         return response()->json(['message' => 'File not found.'], 404);
+    //     }
+
+    //     try {
+    //         if (Storage::disk('public')->exists($file->path)) {
+    //             Storage::disk('public')->delete($file->path);
+    //         }
+
+    //         $file->delete();
+    //         return response()->json(['message' => 'File deleted successfully.']);
+
+    //     } catch (\Exception $e) {
+    //         Log::error('Error deleting file: ' . $e->getMessage());
+    //         return response()->json(['message' => 'Failed to delete file.'], 500);
+    //     }
+    // }
+
+    // public function show($id)
+    // {
+    //     // Fetch a single survey project by ID and eager load its associated files
+    //     $survey_project = SurveyProjectFile::with('files')->find($id);
+
+    //     if (!$survey_project) {
+    //         return response()->json(['message' => 'Survey project not found'], 404);
+    //     }
+
+    //     return response()->json($survey_project);
+    // }
 }

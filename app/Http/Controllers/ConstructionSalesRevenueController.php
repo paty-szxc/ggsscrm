@@ -2,59 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\SalesRevenueImport;
-use App\Models\SalesRevenue;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Imports\ConstructionSalesRevenueImport;
+use App\Models\ConstructionSalesRevenue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
-class SalesRevenueController extends Controller
+class ConstructionSalesRevenueController extends Controller
 {
-    // Helper to sanitize currency input
+    //helper to sanitize currency input
     private function parseCurrency($value) {
         if (is_null($value) || $value === '') return null;
         return floatval(str_replace(',', '', $value));
     }
 
-    // Helper to get withholding tax amount for calculation
-    private function getWithholdingTaxAmount($withholdingTax, $projectCost) {
-        if (is_null($withholdingTax) || $withholdingTax === '') return 0;
-        if (is_numeric($withholdingTax)) return floatval($withholdingTax);
-        // Check for pattern like 'w/ 2% TAX'
-        if (preg_match('/([\d.]+)\s*%/', $withholdingTax, $matches)) {
-            $percent = floatval($matches[1]);
-            return $projectCost * ($percent / 100);
-        }
-        return 0;
-    }
-
     public function index(){
-        $sales_revenue = SalesRevenue::orderBy('date_of_survey', 'desc')->get();
+        $sales_revenue = ConstructionSalesRevenue::orderBy('date', 'desc')->get();
 
         $sales_revenue->transform(function($item){
-            // Parse project cost
+            //parse project cost
             $projectCost = floatval(str_replace(',', '', $item->project_cost));
-            // Calculate withholding tax amount
-            $withholdingTaxAmount = 0;
-            if (preg_match('/([\d.]+)\s*%/', $item->withholding_tax, $matches)) {
-                $percent = floatval($matches[1]);
-                $withholdingTaxAmount = $projectCost * ($percent / 100);
-            } elseif (is_numeric($item->withholding_tax)) {
-                $withholdingTaxAmount = floatval($item->withholding_tax);
-            }
-            // Calculate total collections
+            //calculate total collections
             $total = 0;
             foreach (['first_collection', 'second_collection', 'third_collection', 'fourth_collection'] as $field) {
                 $total += floatval(str_replace(',', '', $item->$field));
             }
-            // Calculate receivable balance
-            $receivableBal = $projectCost - ($total + $withholdingTaxAmount);
+            //calculate receivable balance
+            $receivableBal = $projectCost - $total;
             if ($receivableBal < 0) $receivableBal = 0;
             $item->receivable_bal = number_format($receivableBal, 2);
 
-            // Set fully paid date if receivable is zero or less
+            //set fully paid date if receivable is zero or less
             if ($receivableBal <= 0) {
                 $dates = array_filter([
                     $item->first_date_of_collection,
@@ -76,30 +55,25 @@ class SalesRevenueController extends Controller
         return $sales_revenue;
     }
 
-    public function import(Request $request){
-        $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls|  max:2048',
+    public function import(Request $req){
+        $req->validate([
+            'file' => 'required|mimes:xlsx,csv,xls|max:10240', //added max file size (10MB)
         ]);
+
         try{
-            Excel::import(new SalesRevenueImport(), $request->file('file'));
-            if($request->wantsJson()){
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Sales revenue imported successfully!'
-                ]);
-            }
-            return redirect()->back()->with('success', 'Sales revenue imported successfully!');
+            $file = $req->file('file');
+            Excel::import(new ConstructionSalesRevenueImport, $file);
+            return back()->with('success', 'Construction sales revenue imported successfully!');
         }
         catch(\Exception $e){
-            Log::error('Import error: ' . $e->getMessage());
-            if($request->wantsJson()){
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to import sales revenue',
-                    'error' => $e->getMessage()
-                ], 500);
-            }
-            return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
+            $errorMessage = 'Import failed. ' . 
+                ($e instanceof \Maatwebsite\Excel\Validators\ValidationException ?
+                    'Please check your file format and data.' :
+                    $e->getMessage());
+            
+            return redirect()->back()
+                ->with('error', $errorMessage)
+                ->withInput();
         }
     }
 
@@ -109,22 +83,27 @@ class SalesRevenueController extends Controller
         };
 
         $projectCost = $this->parseCurrency($req->to_update['project_cost'] ?? null);
-        $withholdingTaxStr = $req->to_update['withholding_tax'] ?? null;
-        $withholdingTaxAmount = $this->getWithholdingTaxAmount($withholdingTaxStr, $projectCost);
+        $grossVat = $this->parseCurrency($req->to_update['amount_gross_of_vat'] ?? null);
+        $netVat = $this->parseCurrency($req->to_update['net_of_vat'] ?? null);
+        $vat = $this->parseCurrency($req->to_update['vat'] ?? null);
         $totalCollections =
             $this->parseCurrency($req->to_update['first_collection'] ?? null) +
             $this->parseCurrency($req->to_update['second_collection'] ?? null) +
             $this->parseCurrency($req->to_update['third_collection'] ?? null) +
             $this->parseCurrency($req->to_update['fourth_collection'] ?? null);
-        $receivableBal = $projectCost - ($totalCollections + $withholdingTaxAmount);
-        if ($receivableBal < 0) $receivableBal = 0;
+        $receivableBal = $projectCost - $totalCollections;
+        if($receivableBal < 0) $receivableBal = 0;
 
-        $insert = SalesRevenue::create([
-            'date_of_survey' => $formatDate($req->to_update['date_of_survey'] ?? null), 
-            'location' => $req->to_update['location'] ?? null, 
-            'type_of_survey' => $req->to_update['type_of_survey'] ?? null, 
+        $insert = ConstructionSalesRevenue::create([
+            'date' => $formatDate($req->to_update['date'] ?? null), 
+            'client_name_address' => $req->to_update['client_name_address'] ?? null, 
+            'particulars' => $req->to_update['particulars'] ?? null, 
+            'status_of_vat' => $req->to_update['status_of_vat'] ?? null, 
             'receipt_no' => $req->to_update['receipt_no'] ?? null, 
-            'project_cost' => $projectCost, 
+            'project_cost' => $projectCost,
+            'amount_gross_of_vat' => $grossVat,
+            'net_of_vat' => $netVat,
+            'vat' => $vat,
             'first_date_of_collection' => $formatDate($req->to_update['first_date_of_collection'] ?? null), 
             'first_collection' => $this->parseCurrency($req->to_update['first_collection'] ?? null), 
             'second_date_of_collection' => $formatDate($req->to_update['second_date_of_collection'] ?? null), 
@@ -134,8 +113,8 @@ class SalesRevenueController extends Controller
             'fourth_date_of_collection' => $formatDate($req->to_update['fourth_date_of_collection'] ?? null), 
             'fourth_collection' => $this->parseCurrency($req->to_update['fourth_collection'] ?? null),
             'total' => $this->parseCurrency($req->to_update['total'] ?? null),
-            'withholding_tax' => $withholdingTaxStr, //store as string
             'receivable_bal' => $receivableBal, 
+            'others' => $req->to_update['others'] ?? null, 
             'remarks' => $req->to_update['remarks'] ?? null, 
             'fully_paid_date' => $formatDate($req->to_update['fully_paid_date'] ?? null), 
         ]);
@@ -152,24 +131,29 @@ class SalesRevenueController extends Controller
         };
 
         $projectCost = $this->parseCurrency($req->to_update['project_cost'] ?? null);
-        $withholdingTaxStr = $req->to_update['withholding_tax'] ?? null;
-        $withholdingTaxAmount = $this->getWithholdingTaxAmount($withholdingTaxStr, $projectCost);
+        $grossVat = $this->parseCurrency($req->to_update['amount_gross_of_vat'] ?? null);
+        $netVat = $this->parseCurrency($req->to_update['net_of_vat'] ?? null);
+        $vat = $this->parseCurrency($req->to_update['vat'] ?? null);
         $totalCollections =
             $this->parseCurrency($req->to_update['first_collection'] ?? null) +
             $this->parseCurrency($req->to_update['second_collection'] ?? null) +
             $this->parseCurrency($req->to_update['third_collection'] ?? null) +
             $this->parseCurrency($req->to_update['fourth_collection'] ?? null);
-        $receivableBal = $projectCost - ($totalCollections + $withholdingTaxAmount);
+        $receivableBal = $projectCost - $totalCollections;
         if ($receivableBal < 0) $receivableBal = 0;
 
-        $record = SalesRevenue::find($req->to_update['id']);
+        $record = ConstructionSalesRevenue::find($req->to_update['id']);
 
         $record->update([
-            'date_of_survey' => $formatDate($req->to_update['date_of_survey'] ?? null), 
-            'location' => $req->to_update['location'] ?? null, 
-            'type_of_survey' => $req->to_update['type_of_survey'] ?? null, 
+            'date' => $formatDate($req->to_update['date'] ?? null), 
+            'client_name_address' => $req->to_update['client_name_address'] ?? null, 
+            'particulars' => $req->to_update['particulars'] ?? null, 
+            'status_of_vat' => $req->to_update['status_of_vat'] ?? null, 
             'receipt_no' => $req->to_update['receipt_no'] ?? null, 
-            'project_cost' => $projectCost, 
+            'project_cost' => $projectCost,
+            'amount_gross_of_vat' => $grossVat,
+            'net_of_vat' => $netVat,
+            'vat' => $vat,
             'first_date_of_collection' => $formatDate($req->to_update['first_date_of_collection'] ?? null), 
             'first_collection' => $this->parseCurrency($req->to_update['first_collection'] ?? null), 
             'second_date_of_collection' => $formatDate($req->to_update['second_date_of_collection'] ?? null), 
@@ -179,10 +163,10 @@ class SalesRevenueController extends Controller
             'fourth_date_of_collection' => $formatDate($req->to_update['fourth_date_of_collection'] ?? null), 
             'fourth_collection' => $this->parseCurrency($req->to_update['fourth_collection'] ?? null),
             'total' => $this->parseCurrency($req->to_update['total'] ?? null),
-            'withholding_tax' => $withholdingTaxStr, // store as string
             'receivable_bal' => $receivableBal, 
+            'others' => $req->to_update['others'] ?? null, 
             'remarks' => $req->to_update['remarks'] ?? null, 
-            'fully_paid_date' => $formatDate($req->to_update['fully_paid_date'] ?? null), 
+            'fully_paid_date' => $formatDate($req->to_update['fully_paid_date'] ?? null),
         ]);
 
         return response()->json([
@@ -194,12 +178,12 @@ class SalesRevenueController extends Controller
     public function monthlyCosts(){
         $currentYear = date('Y');
         
-        $results = DB::table('sales_revenue')
+        $results = DB::table('construction_sales_revenue')
             ->select(
-                DB::raw("DATE_FORMAT(date_of_survey, '%b') as month"),
+                DB::raw("DATE_FORMAT(date, '%b') as month"),
                 DB::raw('SUM(project_cost) as total_cost')
             )
-            ->whereYear('date_of_survey', $currentYear)
+            ->whereYear('date', $currentYear)
             ->groupBy('month')
             ->orderByRaw("MONTH(STR_TO_DATE(CONCAT('$currentYear-', month, '-01'), '%Y-%b-%d'))")
             ->get();
@@ -215,19 +199,5 @@ class SalesRevenueController extends Controller
         });
 
         return response()->json($data);
-    }
-
-    public function yearlySales(){
-        $currentYear = date('Y');
-        
-        $totalSales = DB::table('sales_revenue')
-            ->select(DB::raw('SUM(project_cost) as yearly_total'))
-            ->whereYear('date_of_survey', $currentYear)
-            ->first();
-
-        return response()->json([
-            'year' => $currentYear,
-            'total_sales' => $totalSales->yearly_total ?: 0
-        ]);
     }
 }
