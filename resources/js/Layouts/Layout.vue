@@ -113,7 +113,7 @@ const backButtonLink = computed(() => {
     if(currentPath.startsWith('/survey_monitoring') || 
         currentPath.startsWith('/dashboard') ||
         currentPath.startsWith('/sales_and_revenue') ||
-        currentPath.startsWith('/quotation') ||
+        currentPath.startsWith('/survey_quotation') ||
         currentPath.startsWith('/expenses') ||
         currentPath.startsWith('/office_equipment') ||
         currentPath.startsWith('/survey_equipments') ||

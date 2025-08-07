@@ -213,7 +213,7 @@ class OfficeSuppliesController extends Controller
             $validated = $req->validate([
                 'vehicle_name' => 'string|max:255',
                 'cost' =>  ['nullable', 'numeric'],
-                'pdf_file' => 'nullable|mimes:jpg,jpeg,png,pdf|max:104857600'
+                'pdf_file' => 'nullable|mimes:jpg,jpeg,png,pdf|max:10485760'
             ]);
 
             $pdfPath = null;
@@ -266,7 +266,7 @@ class OfficeSuppliesController extends Controller
                 'cost' => ['nullable', 'numeric', 'min:0'],
                 'pdf_file' => 'nullable|mimes:jpg,jpeg,png,pdf|max:104857600',
             ], [
-                'pdf_file.max' => 'The PDF file must not exceed 100MB',
+                'pdf_file.max' => 'The PDF file must not exceed 10MB',
                 'pdf_file.mimes' => 'Only JPG, JPEG, PNG, and PDF files are allowed',
                 'cost.numeric' => 'The cost must be a number'
             ]);

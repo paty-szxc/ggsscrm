@@ -15,6 +15,7 @@ class RegisterController extends Controller {
     public function register(Request $req){
         try{
             $validated = $req->validate([
+                'emp_code' => 'required|string|max:20|unique:user_registers,emp_code',
                 'first_name' => 'required|string|max:50',
                 'surname' => 'required|string|max:50',
                 'username' => [
@@ -29,14 +30,17 @@ class RegisterController extends Controller {
                     Rules\Password::min(8)
                         ->letters()
                 ],
+                'role' => 'required|string|in:Admin,Encoder,Viewer,Encoder & Viewer,Checker',
             ]);
 
             DB::beginTransaction();
             UserRegister::create([
+                'emp_code' => $validated['emp_code'],
                 'first_name' => $validated['first_name'],
                 'surname' => $validated['surname'],
                 'username' => $validated['username'],
                 'password' => Hash::make($validated['password']),
+                'role' => $validated['role'],
             ]);
             DB::commit();
             return response()->json(['message' => $req->first_name . ' successfully registered'], 200);
