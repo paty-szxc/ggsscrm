@@ -116,6 +116,7 @@ const backButtonLink = computed(() => {
         currentPath.startsWith('/quotation') ||
         currentPath.startsWith('/expenses') ||
         currentPath.startsWith('/office_equipment') ||
+        currentPath.startsWith('/survey_equipments') ||
         currentPath.startsWith('/company_assets')
     ){
         return '/ggss'
@@ -163,6 +164,7 @@ const headerTitle = computed(() => {
         '/office_equipment',
         '/company_assets',
         '/survey_quotation',
+        '/survey_equipments',
     ]
     const gcoRoutes = [
         '/construction_dashboard',

@@ -15,6 +15,7 @@ class UserRegister extends Authenticatable implements AuthenticatableContract
     protected $table = 'user_registers';
 
     protected $fillable = [
+        'emp_code',
         'first_name',
         'surname',
         'username',

@@ -1,7 +1,7 @@
 <template>
     <h1 class="p-4 font-sans indent-8 text-2xl">LIST(S) OF SURVEY</h1>
 
-    <div v-if="currentUser && (currentUser.id === 1 || currentUser.id === 3)" class="ml-6 mb-4 flex items-center">
+    <div v-if="currentUser && (currentUser.id === 1 ||currentUser.id === 2  || currentUser.id === 12)" class="ml-6 mb-4 flex items-center">
         <v-checkbox
             v-model="showAll"
             label="Show all data"
@@ -60,6 +60,12 @@
                     hide-details
                     label="Processed By"
                     v-model="tempData.processed_by">
+                </v-text-field>
+                <v-text-field
+                    class="mt-3"
+                    hide-details
+                    label="Processed By"
+                    v-model="tempData.surveyed_by">
                 </v-text-field>
                 <div style="display: flex; align-items: center;">
                     <v-checkbox
@@ -289,11 +295,11 @@
             <v-card-title 
                 style="background: linear-gradient(135deg, #0047AB, #50C878); 
                 color: white;">
-                PDF Files for Survey
+                Files for Survey
             </v-card-title>
             <v-card-text>
                 <div v-if="pdfFiles.length === 0" class="text-center text-gray-500 p-4 border rounded-lg bg-gray-50">
-                    No PDF files available for this survey.
+                    No files available for this survey.
                 </div>
                 <div v-else class="overflow-x-auto rounded-lg shadow-md border border-gray-200">
                     <table class="min-w-full bg-white divide-y divide-gray-200">
@@ -505,7 +511,7 @@ const handleFileChange = () => {
 };
 
 
-// Function to upload selected files
+//function to upload selected files
 const uploadFiles = async () => {
     console.log(selectedFiles.value, 'selectedFiles')
     const to_update = { ...tempData.value };
@@ -535,8 +541,9 @@ const uploadFiles = async () => {
         const response = await axios.post('/api/files/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
-        },
+            },
         });
+        fetchSurveyData()
         message.value = response.data.message;
         messageType.value = 'success';
         selectedFiles.value = []; 
@@ -652,7 +659,7 @@ const submitForm = async () => {
         data: { to_update }
     }).then((res) => {
         fetchSurveyData();
-        if (isEditMode.value) {
+        if(isEditMode.value){
             snackbar.value.alertUpdate();
         } else {
             snackbar.value.alertSuccess();
@@ -687,20 +694,25 @@ const openEditDialog = (item) => {
 const openAddDialog = () => {
     isEditMode.value = false
     dialog.value = true
-    tempData.value = {}; // Clear previous data
-    files.value = []; // No uploaded files for new entry
-    selectedFiles.value = []; // Clear new selections
+    tempData.value = {}; //clear previous data
+    files.value = []; //no uploaded files for new entry
+    selectedFiles.value = []; //clear new selections
     internalSelectedFiles.value = [];
 
-    if (currentUser.value){
-        const excludedUserIds = [1, 2, 4, 12]
+    if(currentUser.value){
+        const excludeEmpsCodes = ['0000-0000', '0000-0003', '0000-0005', '0000-0012', '0002-0000'];
+        const normalizedId = String(currentUser.value.emp_code).trim().toLowerCase();
+        const isExcluded = excludeEmpsCodes.map(code => code.toLowerCase()).includes(normalizedId);
 
-        if(excludedUserIds.includes(currentUser.value.id)){
+        if(isExcluded){
             tempData.value.processed_by = currentUser.value.username
+            tempData.value.surveyed_by = currentUser.value.username
         } 
         else{
             tempData.value.processed_by = `Engr. ${currentUser.value.username}`
+            tempData.value.surveyed_by = `Engr. ${currentUser.value.username}`
         }
+        console.log(currentUser.value.username)
     }
 }
 
@@ -713,7 +725,7 @@ const closeAddDialog = () => {
 const fetchSurveyData = async () => {
     try{
         let params = {};
-        if(currentUser.value && (currentUser.value.id === 1 || currentUser.value.id === 3)){
+        if(currentUser.value && (currentUser.value.role === 'Admin')){
             params.show_all = showAll.value ? 1 : 0;
         }
         const res = await axios.get('/get_survey_data', { params });

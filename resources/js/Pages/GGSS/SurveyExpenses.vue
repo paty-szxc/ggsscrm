@@ -1,8 +1,176 @@
 <template>
     <div>
+        <!-- date range filter -->
+        <div class="p-4 bg-white rounded-lg shadow-md mb-4">
+            <h3 class="text-lg font-semibold mb-3">Weekly Expenses Filter</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <v-date-input
+                    density="compact"
+                    hide-details
+                    label="Start Date"
+                    prepend-icon=""
+                    prepend-inner-icon="mdi-calendar"
+                    variant="outlined"
+                    v-model="dateRange.startDate"
+                    @update:model-value="filterByDateRange"
+                />
+                <v-date-input
+                    density="compact"
+                    hide-details
+                    label="End Date"
+                    prepend-icon=""
+                    prepend-inner-icon="mdi-calendar"
+                    variant="outlined"
+                    v-model="dateRange.endDate"
+                    @update:model-value="filterByDateRange"
+                />
+                <div class="flex items-center">
+                    <v-btn
+                        @click="clearDateFilter"
+                        color="secondary"
+                        variant="outlined"
+                        class="mr-2">
+                        Clear Filter
+                    </v-btn>
+                    <!-- <v-btn
+                        @click="exportWeeklyReport"
+                        color="primary"
+                        variant="flat"
+                    >
+                        Export Report
+                    </v-btn> -->
+                </div>
+            </div>
+            
+            <!-- Weekly Summary -->
+            <!-- <div v-if="weeklyTotals" class="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h4 class="text-md font-semibold mb-2">Weekly Summary ({{ formatDate(dateRange.startDate) }} - {{ formatDate(dateRange.endDate) }})</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div class="bg-white p-2 rounded border">
+                        <div class="font-medium text-gray-600">Employee Salary <br> Employee Benefits <br> Meals</div>
+                        <div class="text-lg font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.employee_salary) }} <br> ₱{{ formatCurrency(weeklyTotals.employee_benefits) }} <br> ₱{{ formatCurrency(weeklyTotals.meals_office_survey) }}</div>
+                    </div>
+                    <div class="bg-white p-2 rounded border">
+                        <div class="font-medium text-gray-600">Dog Food <br> Construction Survey Supplies <br> Repairs Maintenance</div>
+                        <div class="text-lg font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.dog_food) }} <br> ₱{{ formatCurrency(weeklyTotals.construction_survey_supplies) }} <br> ₱{{ formatCurrency(weeklyTotals.repairs_maintenance) }}</div>
+                    </div>
+                    <div class="bg-white p-2 rounded border">
+                        <div class="font-medium text-gray-600">Office Supplies <br> Gasoline & Oil <br> Utilities</div>
+                        <div class="text-lg font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.office_supplies) }} <br> ₱{{ formatCurrency(weeklyTotals.gasoline_oil) }} <br> ₱{{ formatCurrency(weeklyTotals.utilities) }}</div>
+                    </div>
+                    <div class="bg-white p-2 rounded border">
+                        <div class="font-medium text-gray-600">Total Expenses</div>
+                        <div class="text-lg font-bold text-red-600">₱{{ formatCurrency(weeklyTotals.total) }}</div>
+                    </div>
+                </div>
+            </div> -->
+            <div v-if="weeklyTotals" class="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h4 class="text-md font-semibold mb-2">Weekly Summary ({{ formatDate(dateRange.startDate) }} - {{ formatDate(dateRange.endDate) }})</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <!-- Column 1 -->
+                    <div class="bg-white p-3 rounded border shadow-sm">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Employee Salary</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.employee_salary) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Employee Benefits</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.employee_benefits) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Meals</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.meals_office_survey) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Dog Food</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.dog_food) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Construction Supplies</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.construction_survey_supplies) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Repairs Maintenance</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.repairs_maintenance) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 2 -->
+                    <div class="bg-white p-3 rounded border shadow-sm">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Office Supplies</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.office_supplies) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Gasoline & Oil</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.gasoline_oil) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Utilities</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.utilities) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Parking Fee</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.parking_fee) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Toll Fee</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.toll_fee) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Permits, Certification & Tax </span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.permits_certification_tax) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 3 -->
+                    <div class="bg-white p-3 rounded border shadow-sm">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Transportation/Shipping</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.transportation) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Budget(Survey/Outside Office)/Commission or SOP</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.budget) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">Representation Expense(Personal - Sir Pete)</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.representation_expense_personal) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">OTHERS(Staff - Personal)</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.others_staff_personal) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">AMOUNT( GROSS OF VAT)</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.amount_gross_of_vat) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium text-gray-600">VAT</span>
+                                <span class="font-bold text-green-600">₱{{ formatCurrency(weeklyTotals.vat) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Column 4 -->
+                    <div class="bg-white p-3 rounded border shadow-sm flex flex-col justify-center items-center">
+                        <div class="text-center">
+                            <div class="font-medium text-gray-600 mb-2">Total Expenses</div>
+                            <div class="text-2xl font-bold text-red-600">₱{{ formatCurrency(weeklyTotals.total) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <ExpensesTable
             :voucher_headers="voucherHeaders"
-            :vouchers="vouchersData"
+            :vouchers="filteredVouchersData"
             @refresh-data="fetchVouchers"
             @open-dialog="openAddDialog"
             @edit-data="openEditDialog"
@@ -230,6 +398,14 @@ const dialog = ref(false)
 const isEditMode = ref(false)
 const snackbar = ref(null)
 
+// Date range filtering
+const dateRange = ref({
+    startDate: null,
+    endDate: null
+})
+const filteredVouchersData = ref([])
+const weeklyTotals = ref(null)
+
 const submitForm = async () =>  {
     const to_update = { ...tempData.value }
 
@@ -309,11 +485,177 @@ const fetchVouchers = async () => {
     try{
         const res = await axios.get('/get_vouchers')
         vouchersData.value = res.data
+        filteredVouchersData.value = res.data // Initialize filtered data
         console.log(res.data)
     }
     catch(error){
         console.error('Error fetching data', error)
     }
+}
+
+// Date range filtering functions
+const filterByDateRange = () => {
+    if (!dateRange.value.startDate || !dateRange.value.endDate) {
+        filteredVouchersData.value = vouchersData.value
+        weeklyTotals.value = null
+        return
+    }
+
+    const startDate = new Date(dateRange.value.startDate)
+    const endDate = new Date(dateRange.value.endDate)
+    
+    // Set time to start and end of day
+    startDate.setHours(0, 0, 0, 0)
+    endDate.setHours(23, 59, 59, 999)
+
+    filteredVouchersData.value = vouchersData.value.filter(voucher => {
+        const voucherDate = new Date(voucher.date)
+        return voucherDate >= startDate && voucherDate <= endDate
+    })
+
+    calculateWeeklyTotals()
+}
+
+const calculateWeeklyTotals = () => {
+    if (filteredVouchersData.value.length === 0) {
+        weeklyTotals.value = null
+        return
+    }
+
+    const totals = {
+        employee_salary: 0,
+        employee_benefits: 0,
+        meals_office_survey: 0,
+        dog_food: 0,
+        construction_survey_supplies: 0,
+        repairs_maintenance: 0,
+        office_supplies: 0,
+        gasoline_oil: 0,
+        utilities: 0,
+        parking_fee: 0,
+        toll_fee: 0,
+        permits_certification_tax: 0,
+        transportation: 0,
+        budget: 0,
+        representation_expense_personal: 0,
+        others_staff_personal: 0,
+        amount_gross_of_vat: 0,
+        vat: 0,
+        total: 0
+    }
+
+    filteredVouchersData.value.forEach(voucher => {
+        // Parse numeric values, defaulting to 0 if null/undefined
+        const parseValue = (value) => {
+            if (value === null || value === undefined || value === '') return 0
+            return parseFloat(value.toString().replace(/,/g, '')) || 0
+        }
+
+        totals.employee_salary += parseValue(voucher.employee_salary)
+        totals.employee_benefits += parseValue(voucher.employee_benefits)
+        totals.meals_office_survey += parseValue(voucher.meals_office_survey)
+        totals.dog_food += parseValue(voucher.dog_food)
+        totals.construction_survey_supplies += parseValue(voucher.construction_survey_supplies)
+        totals.repairs_maintenance += parseValue(voucher.repairs_maintenance)
+        totals.office_supplies += parseValue(voucher.office_supplies)
+        totals.gasoline_oil += parseValue(voucher.gasoline_oil)
+        totals.utilities += parseValue(voucher.utilities)
+        totals.parking_fee += parseValue(voucher.parking_fee)
+        totals.toll_fee += parseValue(voucher.toll_fee)
+        totals.permits_certification_tax += parseValue(voucher.permits_certification_tax)
+        totals.transportation += parseValue(voucher.transportation)
+        totals.budget += parseValue(voucher.budget)
+        totals.representation_expense_personal += parseValue(voucher.representation_expense_personal)
+        totals.others_staff_personal += parseValue(voucher.others_staff_personal)
+        totals.amount_gross_of_vat += parseValue(voucher.amount_gross_of_vat)
+        totals.vat += parseValue(voucher.vat)
+    })
+
+    // Calculate total
+    totals.total = Object.keys(totals).reduce((sum, key) => {
+        if (key !== 'total') {
+            return sum + totals[key]
+        }
+        return sum
+    }, 0)
+
+    weeklyTotals.value = totals
+}
+
+const clearDateFilter = () => {
+    dateRange.value.startDate = null
+    dateRange.value.endDate = null
+    filteredVouchersData.value = vouchersData.value
+    weeklyTotals.value = null
+}
+
+const formatDate = (date) => {
+    if (!date) return ''
+    return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    })
+}
+
+const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined) return '0.00'
+    return parseFloat(amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })
+}
+
+const exportWeeklyReport = () => {
+    if (!weeklyTotals.value) {
+        alert('Please select a date range first')
+        return
+    }
+
+    // Create CSV content
+    const headers = [
+        'Category',
+        'Amount (₱)'
+    ]
+
+    const data = [
+        ['Employee Salary', formatCurrency(weeklyTotals.value.employee_salary)],
+        ['Employee Benefits', formatCurrency(weeklyTotals.value.employee_benefits)],
+        ['Meals (Office/Survey)', formatCurrency(weeklyTotals.value.meals_office_survey)],
+        ['Dog Food', formatCurrency(weeklyTotals.value.dog_food)],
+        ['Construction & Survey Supplies', formatCurrency(weeklyTotals.value.construction_survey_supplies)],
+        ['Repairs & Maintenance', formatCurrency(weeklyTotals.value.repairs_maintenance)],
+        ['Office Supplies', formatCurrency(weeklyTotals.value.office_supplies)],
+        ['Gasoline & Oil', formatCurrency(weeklyTotals.value.gasoline_oil)],
+        ['Utilities', formatCurrency(weeklyTotals.value.utilities)],
+        ['Parking Fee', formatCurrency(weeklyTotals.value.parking_fee)],
+        ['Toll Fee', formatCurrency(weeklyTotals.value.toll_fee)],
+        ['Permits, Certification & Tax', formatCurrency(weeklyTotals.value.permits_certification_tax)],
+        ['Transportation/Shipping', formatCurrency(weeklyTotals.value.transportation)],
+        ['Budget', formatCurrency(weeklyTotals.value.budget)],
+        ['Representation Expense', formatCurrency(weeklyTotals.value.representation_expense_personal)],
+        ['Others (Staff - Personal)', formatCurrency(weeklyTotals.value.others_staff_personal)],
+        ['Amount (Gross of VAT)', formatCurrency(weeklyTotals.value.amount_gross_of_vat)],
+        ['VAT', formatCurrency(weeklyTotals.value.vat)],
+        ['', ''],
+        ['TOTAL EXPENSES', formatCurrency(weeklyTotals.value.total)]
+    ]
+
+    const csvContent = [
+        headers.join(','),
+        ...data.map(row => row.join(','))
+    ].join('\n')
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `weekly_expenses_${formatDate(dateRange.value.startDate)}_to_${formatDate(dateRange.value.endDate)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
 }
 
 onMounted(() => {

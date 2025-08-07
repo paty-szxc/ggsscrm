@@ -57,6 +57,15 @@
                             <p class="text-gray-600 mb-6 text-center">Create your account.</p>
                             <v-form @submit.prevent="handleRegister" ref="registerForm">
                                 <div class="space-y-4">
+                                    <v-text-field
+                                        class="w-full"
+                                        density="compact"
+                                        label="Employee Code"
+                                        placeholder="0000-0000"
+                                        :rules="empCodeRules"
+                                        variant="outlined"
+                                        v-model="newUser.emp_code">
+                                    </v-text-field>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <v-text-field
                                         density="compact"
@@ -72,7 +81,6 @@
                                     </v-text-field>
                                     </div>
                                     <v-text-field
-                                        class="w-full"
                                         density="compact"
                                         label="Username"
                                         variant="outlined"
@@ -101,14 +109,15 @@
                                         variant="outlined"
                                         v-model="newUser.confirmPass">
                                     </v-text-field>
-                                    <!-- <v-autocomplete
+                                    <v-autocomplete
                                         class="w-full"
                                         density="compact"
                                         :items="roles"
                                         label="Role"
+                                        :rules="roleRules"
                                         variant="outlined"
                                         v-model="newUser.role">
-                                    </v-autocomplete> -->
+                                    </v-autocomplete>
                                     <v-btn 
                                         block 
                                         class="bg-purple-600 text-white mt-2"
@@ -149,16 +158,25 @@ const registerForm = ref(null)
 const newUser = ref({})
 const showPassword = ref(false)
 const showConfirmPass = ref(false)
-const roles = ['Admin', 'Encoder', '']
+const roles = ['Admin', 'Encoder', 'Viewer', 'Encoder & Viewer', 'Checker']
 const snackbar = ref(null)
 
+const empCodeRules = [
+    (v) => !!v || 'Employee Code is required.',
+    (v) => (v && v.length >= 9) || 'Employee Code must be 9 characters',
+]
+
+const roleRules = [
+    (v) => !!v || 'Role is required.'
+]
+
 const passwordRules = [
-    (v) => !!v || 'Password is required',
+    (v) => !!v || 'Password is required.',
     (v) => (v && v.length >= 8) || 'Password must be at least 8 characters',
 ]
 
 const confirmPassRules = computed(() => [
-    (v) => !!v || 'Please confirm your password',
+    (v) => !!v || 'Please confirm your password.',
     (v) => v === newUser.value.password || 'Passwords do not match',
 ])
 
@@ -199,11 +217,13 @@ const registerBtn = async () => {
         await axios.get('sanctum/csrf-cookie')
         
         const payload = {
+            emp_code: newUser.value.emp_code,
             first_name: newUser.value.first_name,
             surname: newUser.value.surname,
             username: newUser.value.username,
             password: newUser.value.password,
             password_confirmation: newUser.value.confirmPass,
+            role: newUser.value.role,
         }
 
         const response = await axios.post('register', payload)

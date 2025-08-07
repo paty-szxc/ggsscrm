@@ -18,4 +18,8 @@ class CompanyVehicle extends Model
         'pdf_path',
         'original_filename'
     ];
+
+    public function maintenanceRecords(){
+        return $this->hasMany(VehicleMaintenance::class);
+    }
 }
