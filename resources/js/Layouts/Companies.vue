@@ -99,20 +99,21 @@ const isLoginPage = computed(() => usePage().url === '/login')
 const currentUser = computed(() => usePage().props.auth?.user)
 const userName = computed(() => currentUser.value?.username)
 const userAvatar = computed(() => {
-    const userId = currentUser.value?.id;
+    const userRole = currentUser.value?.id;
     
     const avatarMap = {
         3: '/images/kuya.png',
         1: '/images/jen.png',
         2: '/images/arnold.png',
     };
-    return avatarMap[userId]
+    return avatarMap[userRole]
 });
 
 const isAllowedUser = computed(() => {
-    const userId = currentUser.value?.id;
-    return [1, 3, 5, 6].includes(userId);
+    const userRole = currentUser.value?.role;
+    return ['Admin', 'Encoder & Viewer'].includes(userRole);
 });
+
 
 function logout() {
     axios.post('logout').then(() => {

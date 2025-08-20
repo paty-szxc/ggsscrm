@@ -16,6 +16,7 @@ class ConstructionProjects extends Model
         'user_id',
         'date_started',
         'date_completed',
+        'duration',
         'location',
         'particulars',
         'processed_by',

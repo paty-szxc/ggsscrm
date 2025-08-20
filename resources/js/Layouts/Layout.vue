@@ -117,7 +117,8 @@ const backButtonLink = computed(() => {
         currentPath.startsWith('/expenses') ||
         currentPath.startsWith('/office_equipment') ||
         currentPath.startsWith('/survey_equipments') ||
-        currentPath.startsWith('/company_assets')
+        currentPath.startsWith('/company_assets') ||
+        currentPath.startsWith('/govt_external')
     ){
         return '/ggss'
     }

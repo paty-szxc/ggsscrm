@@ -65,26 +65,62 @@
             </template>
         </a>
         <a :href="userIsAdmin ? '/quotation' : null" 
-            :class="{'flex flex-col items-center': true, 'cursor-not-allowed opacity-20': userIsAdmin, 'cursor-not-allowed opacity-50': !userIsAdmin}">
+            :class="{'cursor-pointer flex flex-col items-center': true, 'cursor-not-allowed opacity-50': !userIsAdmin}">
             <v-tooltip
-                text="Still Ongoing"
+                v-if="!userIsAdmin"
+                text="Access restricted to authorized users only."
                 location="bottom">
                 <template v-slot:activator="{ props }">
-                <div v-bind="props">
-                    <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
-                    <img 
-                        src="/public/images/quote.png" 
-                        alt="Quotations" 
-                        :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-20': userIsAdmin, 'opacity-20': !userIsAdmin}">
+                    <div v-bind="props">
+                        <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                            <img src="/public/images/quote.png" alt="Quotations" 
+                            :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                        </div>
+                        <div class="m-4 font-semibold text-center">
+                            <span>Quotations</span>
+                        </div>
                     </div>
-                    <div class="m-4 font-semibold text-center">
-                    <span>Quotations</span>
-                    </div>
-                </div>
                 </template>
             </v-tooltip>
+            <template v-if="userIsAdmin">
+                <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                <img src="/public/images/quote.png" alt="Quotations" 
+                    :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                </div>
+                <div class="m-4 font-semibold text-center">
+                    <span>Quotations</span>
+                </div>
+            </template>
         </a>
         <a :href="userIsAdmin ? '/construction_expenses' : null" 
+            :class="{'cursor-pointer flex flex-col items-center': true, 'cursor-not-allowed opacity-50': !userIsAdmin}">
+            <v-tooltip
+                v-if="!userIsAdmin"
+                text="Access restricted to authorized users only."
+                location="bottom">
+                <template v-slot:activator="{ props }">
+                    <div v-bind="props">
+                        <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                            <img src="/public/images/construction-budget.png" alt="Expenses" 
+                            :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                        </div>
+                        <div class="m-4 font-semibold text-center">
+                            <span>Expenses</span>
+                        </div>
+                    </div>
+                </template>
+            </v-tooltip>
+            <template v-if="userIsAdmin">
+                <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
+                <img src="/public/images/construction-budget.png" alt="Expenses" 
+                    :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                </div>
+                <div class="m-4 font-semibold text-center">
+                    <span>Expenses</span>
+                </div>
+            </template>
+        </a>
+        <!-- <a :href="userIsAdmin ? '/construction_expenses' : null" 
             :class="{'flex flex-col items-center': true, 'cursor-not-allowed opacity-20': userIsAdmin, 'cursor-not-allowed opacity-50': !userIsAdmin}">
             <v-tooltip
                 text="Still Ongoing"
@@ -100,17 +136,7 @@
                         </div>
                     </div>
                 </template>
-            </v-tooltip>
-            <!-- <template v-if="userIsAdmin">
-                <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
-                    <img src="/public/images/construction-budget.png" alt="Expenses" 
-                        :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-20': !userIsAdmin}">
-                </div>
-                <div class="m-4 font-semibold text-center">
-                    <span>Expenses</span>
-                </div>
-            </template> -->
-        </a>
+            </v-tooltip> -->
     </div>
 </template>
 
@@ -121,9 +147,9 @@ import { usePage } from '@inertiajs/vue3';
 // const isHomePage = computed(() => usePage().url === '/')
 // const showImages = computed(() => isHomePage.value)
 const userIsAdmin = computed(() => {
-    const userId = usePage().props.auth?.user?.id;
-    console.log('User  data:', userId);
-    return [1, 3, 4, 5, 6].includes(userId);
+    const userRole = usePage().props.auth?.user?.role;
+    console.log('User  data:', userRole);
+    return ['Admin', 'Encoder & Viewer',].includes(userRole);
 });
 
 </script>

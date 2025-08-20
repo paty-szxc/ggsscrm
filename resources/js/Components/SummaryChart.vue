@@ -35,7 +35,7 @@ let chartInstance = null;
 const createChart = () => {
 	if (!chart.value) return;
 
-	// Merge datasets from both props
+	//merge datasets from both props
 	const datasets = [
 		...props.salesDataChart.datasets,
 		...props.expDataChart.datasets

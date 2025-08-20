@@ -81,22 +81,6 @@
             show-expand
             @dblclick:row="(item, event) => editData(event, item)"
             v-model:items-per-page="itemsPerPage">
-            <template v-slot:item.start_process="{ item }">
-                <v-icon v-if="item.start_process === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
-            <template v-slot:item.end_process="{ item }">
-                <v-icon v-if="item.end_process === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
-            <template v-slot:item.start_actual="{ item }">
-                <v-icon v-if="item.start_actual === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
-            <template v-slot:item.end_actual="{ item }">
-                <v-icon v-if="item.end_actual === 1" color="blue">mdi-check-circle</v-icon>
-                <v-icon v-else color="red">mdi-close-circle</v-icon>
-            </template>
             <template v-slot:item.data-table-expand="{ internalItem, isExpanded, toggleExpand }">
             <v-btn
                 :append-icon="isExpanded(internalItem) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
@@ -114,20 +98,20 @@
                         <v-table density="compact">
                             <thead>
                                 <tr>
-                                <th class="bg-inherit font-sans text-center">Total</th>
-                                <th class="bg-inherit font-sans text-center">Receivable Bal.</th>
-                                <th class="bg-inherit font-sans text-center">Others (Subcon)</th>
+                                <!-- <th class="bg-inherit font-sans text-center">Date Completed/Delivered</th> -->
+                                <th class="bg-inherit font-sans text-center">Duration</th>
+                                <th class="bg-inherit font-sans text-center">Contact Person</th>
+                                <th class="bg-inherit font-sans text-center">Contact No.</th>
                                 <th class="bg-inherit font-sans text-center">Remarks</th>
-                                <th class="bg-inherit font-sans text-center">Fully Paid Date</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="bg-inherit font-sans text-center">{{ item.total }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.receivable_bal }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.others }}</td>
+                                    <!-- <td class="bg-inherit font-sans text-center">{{ item.date_completed }}</td> -->
+                                    <td class="bg-inherit font-sans text-center">{{ item.duration }} days</td>
+                                    <td class="bg-inherit font-sans text-center">{{ item.contact_person }}</td>
+                                    <td class="bg-inherit font-sans text-center">{{ item.contact_no }}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.remarks }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.fully_paid_date }}</td>
                                 </tr>
                             </tbody>
                         </v-table>

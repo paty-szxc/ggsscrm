@@ -1,18 +1,28 @@
 <template>
-    <div class="grid grid-cols-2 gap-8 pl-5 pt-2">
-        <div>
-            <MonthlyChart :barChart="barChart" :barOptions="barOptions"/>
+    <div class="dashboard-container">
+        <!-- first row with monthly charts -->
+        <div class="grid grid-cols-2 gap-8 pl-5 pt-2">
+            <div>
+                <MonthlyChart :barChart="barChart" :barOptions="barOptions"/>
+            </div>
+            <div>
+                <ExpensesChart :expensesChart="expensesChart" :expOptions="expOptions"/>
+            </div>
         </div>
-        <div>
-            <ExpensesChart :expensesChart="expensesChart" :expOptions="expOptions"></ExpensesChart>
-        </div>
-        <div>
-            <SummaryChart 
-                :salesDataChart="summarySalesData"
-                :expDataChart="summaryExpensesData"
-                :salesDataOptions="summaryOptions"
-                :expDataOptions="summaryOptions"
-            />
+
+        <!-- second row with summary and yearly chart -->
+        <div class="grid grid-cols-2 gap-8 pl-5 pt-2"> <!-- added pt-8 for vertical spacing -->
+            <div>
+                <SummaryChart 
+                    :salesDataChart="summarySalesData"
+                    :expDataChart="summaryExpensesData"
+                    :salesDataOptions="summaryOptions"
+                    :expDataOptions="summaryOptions"
+                />
+            </div>
+            <div>
+                <YearlyChart />
+            </div>
         </div>
     </div>
 </template>
@@ -21,6 +31,7 @@
 import SummaryChart from '../../Components/SummaryChart.vue'
 import MonthlyChart from '../../Components/MonthlyChart.vue'
 import ExpensesChart from '../../Components/ExpensesChart.vue';
+import YearlyChart from '../../Components/YearlyChart.vue';
 import { ref, onMounted } from 'vue'
 import axios from 'axios';
 
@@ -103,6 +114,8 @@ const summaryExpensesData = ref({
     }]
 });
 
+const currentYear = new Date().getFullYear();
+
 const summaryOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -112,7 +125,7 @@ const summaryOptions = {
         },
         title: {
             display: true,
-            text: 'Sales vs Expenses Summary',
+            text: `${currentYear} Sales vs Expenses Summary`,
             font: { size: 16 }
         },
         tooltip: {
@@ -142,10 +155,10 @@ const summaryOptions = {
 };
 
 const expensesChart = ref(createChartData('Expenses', Array(12).fill(0)));
-const expOptions = createChartOptions('Monthly Expenses');
+const expOptions = createChartOptions(`${currentYear} Monthly Expenses`);
 
 const barChart = ref(createChartData('Project Cost', Array(12).fill(0)));
-const barOptions = createChartOptions('Monthly Project Sales');
+const barOptions = createChartOptions(`${currentYear} Monthly Project Sales`);
 
 const fetchMonthlyCosts = async () => {
     try{
@@ -173,9 +186,18 @@ const fetchMonthlyExpenses = async () => {
     }
 }
 
+
 onMounted(() => {
     fetchMonthlyCosts();
     fetchMonthlyExpenses();
 });
 
 </script>
+
+<style scoped>
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; /* Adds consistent spacing between rows */
+}
+</style>

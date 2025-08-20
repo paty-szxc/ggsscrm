@@ -1,6 +1,6 @@
 <template>
     <div class="overflow-x-auto">
-    <h3 class="text-lg font-semibold ma-2 ">Vouchers</h3>
+    <h3 class="text-lg font-semibold ml-4 ">Vouchers</h3>
         <div class="flex justify-start mb-2 ml-3 space-x-12">
             <v-file-input
                 accept=".xlsx,.xls,.csv"
