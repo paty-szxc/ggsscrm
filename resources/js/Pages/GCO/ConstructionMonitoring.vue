@@ -314,15 +314,15 @@ watch(() => [tempData.value.start_actual, tempData.value.date_completed],
         if(start && end){
         const startDate = new Date(start)
         const endDate = new Date(end)
-        if(!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())){
-            //calculate the difference in days
-            const diffTime = endDate - startDate
-            const diffDays = Math.max(Math.round(diffTime / (1000 * 60 * 60 * 24)), 0)
-            tempData.value.duration = diffDays
-        } 
-        else{
-            tempData.value.duration = ''
-        }
+            if(!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())){
+                //calculate the difference in days
+                const diffTime = endDate - startDate
+                const diffDays = Math.max(Math.round(diffTime / (1000 * 60 * 60 * 24)), 0)
+                tempData.value.duration = diffDays
+            } 
+            else{
+                tempData.value.duration = ''
+            }
         } 
         else{
         tempData.value.duration = ''

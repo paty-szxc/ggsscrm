@@ -11,6 +11,7 @@ use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\RelocationSurveyController;
 use App\Http\Controllers\SurveyEquipmentsController;
+use App\Http\Controllers\SurveyGovernmentRelatedController;
 use App\Http\Controllers\VehicleMaintenanceController;
 use App\Models\SurveyEquipments;
 use Illuminate\Support\Facades\Route;
@@ -62,12 +63,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])
     ->name('logout');
 
+    //SURVEY PROJECTS
     Route::get('get_survey_data', [SurveyController::class, 'index']);
-    Route::get('get_current_user', [SurveyController::class, 'getCurrentUser']);
+    Route::get('get_current_user_for_survey', [SurveyController::class, 'getCurrentUser']);
     Route::post('import_survey_data', [SurveyController::class, 'import']);
     Route::post('insert_survey_data', [SurveyController::class, 'insert']);
     Route::post('update_survey_data', [SurveyController::class, 'update']);
     Route::get('yearly_chart_data', [SurveyController::class, 'getYearlyChartData']);
+
+    //SALES & REVENUE
+    Route::get('get_sales_revenue_data', [SalesRevenueController::class, 'index']);
     Route::post('import_sales_revenue_data', [SalesRevenueController::class, 'import']);
     Route::post('insert_sales_revenue_data', [SalesRevenueController::class, 'insert']);
     Route::post('update_sales_revenue_data', [SalesRevenueController::class, 'update']);
@@ -109,6 +114,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('insert_data_in_maintenance_table', [VehicleMaintenanceController::class, 'insert']);
     Route::put('update_data_in_maintenance_table/{id}', [VehicleMaintenanceController::class, 'update']);
 
+    //GOVT RELATED
+    Route::get('get_survey_govt_related_data', [SurveyGovernmentRelatedController::class, 'index']);
+    Route::post('insert_survey_govt_related_data', [SurveyGovernmentRelatedController::class, 'insert']);
+    Route::post('update_survey_govt_related_data', [SurveyGovernmentRelatedController::class, 'update']);
 
     //SECTION -  GCO routes
     Route::group(['headerTitle' => 'Geopete Construction'], function() {

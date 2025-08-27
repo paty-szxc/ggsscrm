@@ -378,9 +378,10 @@ const openEditDialog = (item) => {
         }
     })
 
-    if (formattedItem.type_of_survey && typeof formattedItem.type_of_survey === 'string') {
+    if(formattedItem.type_of_survey && typeof formattedItem.type_of_survey === 'string'){
         formattedItem.type_of_survey = formattedItem.type_of_survey.split('&').map(s => s.trim())
-    } else if (!formattedItem.type_of_survey) {
+    }
+    else if(!formattedItem.type_of_survey){
         formattedItem.type_of_survey = []
     }
     

@@ -166,6 +166,7 @@ const headerTitle = computed(() => {
         '/company_assets',
         '/survey_quotation',
         '/survey_equipments',
+        '/govt_external'
     ]
     const gcoRoutes = [
         '/construction_dashboard',

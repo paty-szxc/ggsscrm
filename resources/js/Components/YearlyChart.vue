@@ -119,15 +119,15 @@ const config = {
 		{
 		label: 'Sales',
 		data: salesData,
-		backgroundColor: 'rgba(76, 175, 80, 0.8)',
-		borderColor: 'rgba(76, 175, 80, 1)',
+		backgroundColor: 'rgba(54, 162, 235, 0.7)',
+		borderColor: 'rgba(54, 162, 235, 1)',
 		borderWidth: 1
 		},
 		{
 		label: 'Expenses',
 		data: expensesData,
-		backgroundColor: 'rgba(220, 53, 69, 0.8)',
-		borderColor: 'rgba(220, 53, 69, 1)',
+		backgroundColor: 'rgba(255, 99, 132, 0.7)',
+		borderColor: 'rgba(255, 99, 132, 1)',
 		borderWidth: 1
 		}
 	]

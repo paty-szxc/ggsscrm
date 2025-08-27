@@ -48,11 +48,11 @@
                     <v-tooltip location="bottom" v-else>
                         <template v-slot:activator="{ props }">
                             <v-btn
-                                color="info"
+                                color="grey"
                                 icon
                                 size="small"
                                 v-bind="props"
-                                disabled> <v-icon>mdi-plus</v-icon>
+                                style="cursor: not-allowed;"> <v-icon>mdi-plus</v-icon>
                             </v-btn>
                         </template>
                         <span>Restricted: Only Admins can add.</span>
@@ -64,7 +64,7 @@
                         :headers="houseHeaders"
                         :items="houses"
                         :search="searchHaL"
-                        class="min-w-[400px]">
+                        class="font-sans min-w-[400px]">
                         <template v-slot:item.pdf_attachment="{ item }">
                             <div v-if="item.pdf_url" class="pdf-attachment-wrapper">
                                 <v-tooltip location="bottom">
@@ -113,7 +113,7 @@
                                         class="me-2"
                                         color="grey"
                                         v-bind="props"
-                                        disabled> mdi-pencil
+                                        style="cursor: not-allowed;"> mdi-pencil
                                     </v-icon>
                                 </template>
                                 <span>Restricted: Only Admins can edit.</span>
@@ -230,11 +230,11 @@
                     <v-tooltip location="bottom" v-else>
                         <template v-slot:activator="{ props }">
                             <v-btn
-                                color="info"
+                                color="grey"
                                 icon
                                 size="small"
                                 v-bind="props"
-                                disabled> <v-icon>mdi-plus</v-icon>
+                                style="cursor: not-allowed;"> <v-icon>mdi-plus</v-icon>
                             </v-btn>
                         </template>
                         <span>Restricted: Only Admins can add.</span>
@@ -246,7 +246,7 @@
                         :headers="vehicleHeaders"
                         :items="vehicles"
                         :search="searchVC"
-                        class="min-w-[400px]">
+                        class="font-sans min-w-[400px]">
                         <template v-slot:item.vPdf_attachment="{ item }">
                             <div v-if="item.vehicle_pdf_url" class="pdf-attachment-wrapper">
                                 <v-tooltip location="bottom">
@@ -316,7 +316,7 @@
                                         class="me-2"
                                         color="grey"
                                         v-bind="props"
-                                        disabled> mdi-pencil
+                                        style="cursor: not-allowed;"> mdi-pencil
                                     </v-icon>
                                 </template>
                                 <span>Restricted: Only Admins can edit.</span>
@@ -473,14 +473,14 @@
                         </v-tooltip>
                         <v-tooltip location="bottom" v-else>
                             <template v-slot:activator="{ props }">
-                                <v-fab
-                                    @click="openMaintenanceDialog('add', currentVehicleId)"
-                                    color="info"
+                                <v-btn
+                                    color="grey"
                                     icon
                                     size="small"
-                                    v-bind="props">
+                                    v-bind="props"
+                                    style="cursor: not-allowed;">
                                     <v-icon>mdi-plus</v-icon>
-                                </v-fab>
+                                </v-btn>
                             </template>
                             <span>Restricted: Only Admins can add.</span>
                         </v-tooltip>
@@ -492,7 +492,7 @@
                         items-per-page="5"
                         :headers="headers"
                         :items="maintenance"
-                        class="min-w-[400px]">
+                        class="font-sans min-w-[400px]">
                         <template v-slot:item.pdf_att="{ item }">
                             <div v-if="item.maintenance_url" class="pdf-attachment-wrapper">
                                 <v-tooltip location="bottom">
@@ -821,7 +821,7 @@ const submitForm = async () => {
             'Record updated successfully!' :
             'Record created successfully!')
 
-        // Refresh maintenance data for the current vehicle
+        //refresh maintenance data for the current vehicle
         fetchMaintenanceTableData(currentVehicleId.value)
         addDataDialog.value = false
         resetForm()
@@ -844,7 +844,7 @@ const viewMaintenace = (vehicleId) =>{
     const vehicle = vehicles.value.find(v => v.id === vehicleId)
     currentVehicleName.value = vehicle ? vehicle.vehicle_name : 'Unknown Vehicle'
     
-    // Fetch maintenance data for this specific vehicle
+    //fetch maintenance data for this specific vehicle
     fetchMaintenanceTableData(vehicleId)
 }
 
@@ -1311,7 +1311,7 @@ const fetchCompanyVehicle = async () => {
 onMounted(() => {
     fetchCompanyVehicle()
     fetchHouseAndLot()
-    // Don't fetch all maintenance data initially - only when viewing specific vehicle
+    //don't fetch all maintenance data initially - only when viewing specific vehicle
 })
 </script>
 

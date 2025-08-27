@@ -105,7 +105,7 @@
                         prepend-icon=""
                         prepend-inner-icon="mdi-calendar"
                         variant="outlined"
-                        v-model="tempData.date"
+                        v-model="tempData.date_supplied"
                         :max="new Date().toISOString().split('T')[0]"
                     />   
                     <v-text-field
@@ -177,6 +177,31 @@ const saveForm = async () => {
         to_update.price = parseFloat(to_update.price.toString().replace(/[^\d.]/g, ''));
     }
 
+    //format date only if they are not already formatted
+    const dateFields = ['date_supplied']
+    dateFields.forEach(field => {
+        if(to_update[field]){
+            //if it's already in YYYY-MM-DD format, keep it as is
+            if(typeof to_update[field] === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(to_update[field])){
+                //already formatted correctly, no need to change
+                return
+            }
+            
+            //if it's a Date object or other format, convert it properly
+            const d = new Date(to_update[field])
+            if(!isNaN(d.getTime())){
+                //use local date to avoid timezone issues
+                const year = d.getFullYear()
+                const month = String(d.getMonth() + 1).padStart(2, '0')
+                const day = String(d.getDate()).padStart(2, '0')
+                to_update[field] = `${year}-${month}-${day}`
+            }
+            else{
+                to_update[field] = null
+            }
+        }
+    })
+
     const url = isEditMode.value ? 'update_survey_equipment' : 'insert_survey_equipment'
 
     axios({
@@ -225,6 +250,7 @@ const resetForm = () => {
     edit.value = null
     isEditMode.value = false
 }
+
 
 const getStatusColor = (status) => {
     const normalizedStatus = status.toUpperCase();

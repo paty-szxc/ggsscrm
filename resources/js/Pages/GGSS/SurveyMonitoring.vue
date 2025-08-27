@@ -1,16 +1,18 @@
 <template>
-    <h1 class="p-4 font-sans indent-8 text-2xl">LIST(S) OF SURVEY</h1>
-
-    <div v-if="currentUser && (currentUser.id === 1 ||currentUser.id === 2  || currentUser.id === 12)" class="ml-6 mb-4 flex items-center">
-        <v-checkbox
-            v-model="showAll"
-            label="Show all data"
-            hide-details
-            density="compact"
-            class="mr-2"
-            @change="fetchSurveyData"
-        />
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+        <h1 class="p-2 sm:p-4 font-sans sm:indent-8 text-xl sm:text-2xl">List of Survey(s)</h1>
+        <div v-if="currentUser && (currentUser.role === 'Admin')" class="ml-6 mb-4">
+            <v-checkbox
+                v-model="showAll"
+                label="Show all data"
+                hide-details
+                density="compact"
+                class="mr-2"
+                @change="fetchSurveyData"
+            />
+        </div>
     </div>
+
     <SurveyTable
         :headers="headers"
         :survey_data="surveyData"
@@ -28,162 +30,165 @@
                 {{ isEditMode ? 'Edit' : 'Add' }}
             </v-card-title>
             <v-card-text>
-                <v-date-input
-                    density="compact"
-                    hide-details
-                    label="Date Started"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.date_started"
-                />
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Location"
-                    v-model="tempData.location">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Survey Details"
-                    v-model="tempData.survey_details">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Area"
-                    v-model="tempData.area">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Processed By"
-                    v-model="tempData.processed_by">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Processed By"
-                    v-model="tempData.surveyed_by">
-                </v-text-field>
-                <div style="display: flex; align-items: center;">
-                    <v-checkbox
-                        color="primary"
-                        direction="horizontal" 
-                        density="compact" 
-                        hide-details 
-                        v-model="tempData.survey"
-                        label="Survey">
-                    </v-checkbox>
-                    <!-- <v-checkbox
-                        class="ms-8"
-                        color="primary"
-                        direction="horizontal" 
-                        density="compact" 
-                        hide-details 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 item-start">
+                    <v-date-input
+                        class="mt-3"
+                        density="compact"
+                        hide-details
+                        label="Date Started"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
+                        v-model="tempData.date_started"
+                    />
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Location"
+                        v-model="tempData.location">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Survey Details"
+                        v-model="tempData.survey_details">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Area"
+                        v-model="tempData.area">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Processed By"
+                        v-model="tempData.processed_by">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Surveyed By"
+                        v-model="tempData.surveyed_by">
+                    </v-text-field>
+                    <div style="display: flex; align-items: center;">
+                        <v-checkbox
+                            color="primary"
+                            direction="horizontal" 
+                            density="compact" 
+                            hide-details 
+                            v-model="tempData.survey"
+                            label="Survey">
+                        </v-checkbox>
+                        <!-- <v-checkbox
+                            class="ms-8"
+                            color="primary"
+                            direction="horizontal" 
+                            density="compact" 
+                            hide-details 
+                            v-model="tempData.data_process"
+                            label="Start">
+                        </v-checkbox>
+                        <v-checkbox
+                            class="ms-8"
+                            color="primary"
+                            direction="horizontal" 
+                            density="compact" 
+                            hide-details 
+                            v-model="tempData.plans"
+                            label="End">
+                        </v-checkbox> -->
+                    </div>   
+                    <v-date-input
+                        class="mt-3"
+                        density="compact"
+                        hide-details
+                        label="Start Date"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
                         v-model="tempData.data_process"
-                        label="Start">
-                    </v-checkbox>
-                    <v-checkbox
-                        class="ms-8"
-                        color="primary"
-                        direction="horizontal" 
-                        density="compact" 
-                        hide-details 
+                    />            
+                    <v-date-input
+                        class="mt-3"
+                        density="compact"
+                        hide-details
+                        label="End Date"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
                         v-model="tempData.plans"
-                        label="End">
-                    </v-checkbox> -->
-                </div>   
-                <v-date-input
-                    class="mt-3"
-                    density="compact"
-                    hide-details
-                    label="Start Date"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.data_process"
-                />            
-                <v-date-input
-                    class="mt-3"
-                    density="compact"
-                    hide-details
-                    label="End Date"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.plans"
-                />            
-                <v-date-input
-                    class="mt-3"
-                    density="compact"
-                    hide-details
-                    label="Date Approved"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.date_approved"
-                />
-                <v-date-input
-                    class="mt-3"
-                    density="compact"
-                    hide-details
-                    label="Date Completed/Delivered"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.date_completed"
-                />
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Remarks"
-                    v-model="tempData.remarks">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Contact Person"
-                    v-model="tempData.contact_person">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Contact No."
-                    v-model="tempData.contact_no">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Thru"
-                    v-model="tempData.thru">
-                </v-text-field>
-
-                <!-- <v-date-input
-                    class="mt-3"
-                    density="compact"
-                    hide-details
-                    label="Date Delivered"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.date_delivered"
-                /> -->
-
-                <v-file-input
-                    class="mt-3"
-                    density="compact"
-                    variant="outlined"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-attachment"
-                    v-model="internalSelectedFiles" 
-                    id="file-upload"
-                    type="file"
-                    multiple
-                    @change="handleFileChange"
-                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                />
+                    />            
+                    <v-date-input
+                        class="mt-3"
+                        density="compact"
+                        hide-details
+                        label="Date Approved"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
+                        v-model="tempData.date_approved"
+                    />
+                    <v-date-input
+                        class="mt-3"
+                        density="compact"
+                        hide-details
+                        label="Date Completed/Delivered"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
+                        v-model="tempData.date_completed"
+                    />
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Remarks"
+                        v-model="tempData.remarks">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Contact Person"
+                        v-model="tempData.contact_person">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Contact No."
+                        v-model="tempData.contact_no">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        label="Thru"
+                        v-model="tempData.thru">
+                    </v-text-field>
+    
+                    <!-- <v-date-input
+                        class="mt-3"
+                        density="compact"
+                        hide-details
+                        label="Date Delivered"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
+                        v-model="tempData.date_delivered"
+                    /> -->
+    
+                    <v-file-input
+                        class="mt-3"
+                        density="compact"
+                        variant="outlined"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-attachment"
+                        v-model="internalSelectedFiles" 
+                        id="file-upload"
+                        type="file"
+                        multiple
+                        label="File Upload"
+                        @change="handleFileChange"
+                        accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                    />
+                </div>
 
                 <div v-if="selectedFiles.length > 0" class="mt-4 text-left">
                     <p class="text-gray-700 font-medium mb-2">Selected Files:</p>
@@ -606,7 +611,7 @@ const getFileIcon = (filePath) => {
 
 const fetchCurrentUser = async () => {
     try{
-        const res = await axios.get('/get_current_user')
+        const res = await axios.get('/get_current_user_for_survey')
         currentUser.value = res.data
         console.log(res.data)
     } 
@@ -699,7 +704,7 @@ const openAddDialog = () => {
     internalSelectedFiles.value = [];
 
     if(currentUser.value){
-        const excludeEmpsCodes = ['0000-0000', '0000-0003', '0000-0005', '0000-0012', '0002-0000'];
+        const excludeEmpsCodes = ['0000-0000', '0001-0000', '0000-0003', '0000-0005', '0000-0012', '0002-0000'];
         const normalizedId = String(currentUser.value.emp_code).trim().toLowerCase();
         const isExcluded = excludeEmpsCodes.map(code => code.toLowerCase()).includes(normalizedId);
 
@@ -734,7 +739,8 @@ const fetchSurveyData = async () => {
     catch(error){
         console.error('Error fetching Survey data', error);
     }
-};
+}
+
 
 onMounted(() => {
     fetchSurveyData()
