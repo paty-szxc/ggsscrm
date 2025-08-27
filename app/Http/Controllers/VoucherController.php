@@ -44,33 +44,6 @@ class VoucherController extends Controller
         return $data;
     }
 
-    // public function import(Request $request){
-    //     $request->validate([
-    //         'file' => 'required|mimes:xlsx,csv,xls|  max:10000',
-    //     ]);
-    //     try{
-    //         // Excel::import(new VoucherImport(), $request->file('file'));
-    //         Excel::import(new VouchersMultiSheetImport(), $request->file('file'));
-    //         if($request->wantsJson()){
-    //             return response()->json([
-    //                 'success' => true,
-    //                 'message' => 'Monthly voucher imported successfully!'
-    //             ]);
-    //         }
-    //         return redirect()->back()->with('success', 'Monthly voucher imported successfully!');
-    //     }
-    //     catch(\Exception $e){
-    //         Log::error('Import error: ' . $e->getMessage());
-    //         if($request->wantsJson()){
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Failed to import monthly voucher',
-    //                 'error' => $e->getMessage()
-    //             ], 500);
-    //         }
-    //         return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
-    //     }
-    // }
     public function import(Request $request){
         $request->validate([
             'file' => 'required|mimes:xlsx,csv,xls|max:10000',
@@ -210,6 +183,19 @@ class VoucherController extends Controller
     public function yearlyExpenses(){
         $currentYear = date('Y');
         
+        Log::info('YearlyExpenses called for year: ' . $currentYear);
+        
+        // Check if there are any vouchers in the database
+        $totalVouchers = DB::table('vouchers')->count();
+        $vouchersWithDates = DB::table('vouchers')->whereNotNull('date')->count();
+        $vouchersThisYear = DB::table('vouchers')->whereYear('date', $currentYear)->count();
+        
+        Log::info('Voucher counts:', [
+            'total' => $totalVouchers,
+            'with_dates' => $vouchersWithDates,
+            'this_year' => $vouchersThisYear
+        ]);
+        
         $result = DB::table('vouchers')
             ->select(
                 DB::raw('SUM(COALESCE(employee_salary, 0)) as salary'),
@@ -243,8 +229,10 @@ class VoucherController extends Controller
                     COALESCE(budget, 0)
                 ) as grand_total')
             )
-            ->whereYear('date', $currentYear)
+            ->whereRaw('YEAR(date) = ?', [$currentYear])
             ->first();
+
+        Log::info('YearlyExpenses query result:', ['result' => $result, 'currentYear' => $currentYear]);
 
         return response()->json([
             'year' => $currentYear,

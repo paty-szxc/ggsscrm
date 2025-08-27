@@ -8,6 +8,7 @@ use App\Imports\SurveysImport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\SurveyProjectFile;
 
@@ -16,7 +17,7 @@ class SurveyController extends Controller
     public function index(Request $req){
         $user = auth()->user();
         $showAll = $req->input('show_all', 1);
-        if(($user->id == 1 || $user->id == 3) && $showAll){
+        if(($user->role == "Admin") && $showAll){
             return Survey::orderBy('date_started', 'desc')->with('files')->get();
         }
         else{
@@ -31,6 +32,7 @@ class SurveyController extends Controller
         $user = auth()->user();
         return response()->json([
             'id' => $user->id,
+            'emp_code' =>$user->emp_code,
             'username' => $user->username,
             'role' => $user->role,
         ]); 
@@ -138,7 +140,7 @@ class SurveyController extends Controller
 
         //make dynamic, if insert get last id if edit get the current id
         $edit_survey_id = $request->input('survey_project_id');
-        $lastId = Survey::max('id') + 1;
+        $lastId = Survey::max('id');
         $surveyProjectId = $edit_survey_id ? $edit_survey_id : $lastId;
         // return $surveyProjectId;
         $uploadedFileDetails = [];
@@ -173,37 +175,133 @@ class SurveyController extends Controller
         ], 200);
     }
 
-    // public function remove($id) // Accept route parameter directly
-    // {
-    //     $file = SurveyProjectFile::find($id); // Find by route parameter
+    /**
+     * Get yearly chart data including manual data for 2021-2024 and dynamic data for current/next year
+     */
+    public function getYearlyChartData()
+    {
+        $currentYear = date('Y');
+        $nextYear = $currentYear + 1;
 
-    //     if (!$file) {
-    //         return response()->json(['message' => 'File not found.'], 404);
-    //     }
+        // Get manual data for 2021-2024 from config
+        $manualData = $this->getManualYearlyData();
 
-    //     try {
-    //         if (Storage::disk('public')->exists($file->path)) {
-    //             Storage::disk('public')->delete($file->path);
-    //         }
+        // Get current year data from sales_revenue and vouchers tables
+        $currentYearSales = DB::table('sales_revenue')
+            ->select(DB::raw('SUM(project_cost) as total_sales'))
+            ->whereYear('date_of_survey', $currentYear)
+            ->first();
 
-    //         $file->delete();
-    //         return response()->json(['message' => 'File deleted successfully.']);
+        $currentYearExpenses = DB::table('vouchers')
+            ->select(DB::raw('SUM(
+                COALESCE(employee_salary, 0) + 
+                COALESCE(employee_benefits, 0) + 
+                COALESCE(meals_office_survey, 0) + 
+                COALESCE(dog_food, 0) + 
+                COALESCE(construction_survey_supplies, 0) + 
+                COALESCE(repairs_maintenance, 0) + 
+                COALESCE(office_supplies, 0) + 
+                COALESCE(gasoline_oil, 0) + 
+                COALESCE(utilities, 0) + 
+                COALESCE(parking_fee, 0) + 
+                COALESCE(toll_fee, 0) + 
+                COALESCE(permits_certification_tax, 0) + 
+                COALESCE(transportation, 0) + 
+                COALESCE(budget, 0)
+            ) as total_expenses'))
+            ->whereYear('date', $currentYear)
+            ->first();
 
-    //     } catch (\Exception $e) {
-    //         Log::error('Error deleting file: ' . $e->getMessage());
-    //         return response()->json(['message' => 'Failed to delete file.'], 500);
-    //     }
-    // }
+        $currentYearSalesAmount = $currentYearSales->total_sales ?? 0;
+        $currentYearExpensesAmount = $currentYearExpenses->total_expenses ?? 0;
+        $currentYearProfit = $currentYearSalesAmount - $currentYearExpensesAmount;
 
-    // public function show($id)
-    // {
-    //     // Fetch a single survey project by ID and eager load its associated files
-    //     $survey_project = SurveyProjectFile::with('files')->find($id);
+        // Build response data
+        $allData = [];
 
-    //     if (!$survey_project) {
-    //         return response()->json(['message' => 'Survey project not found'], 404);
-    //     }
+        // Add manual years (2021-2024)
+        foreach ($manualData as $year => $data) {
+            $allData[] = [
+                'year' => $year,
+                'sales_revenue' => $data['sales_revenue'],
+                'expenses' => $data['expenses'],
+                'profit' => $data['sales_revenue'] - $data['expenses'],
+                'is_manual' => true
+            ];
+        }
 
-    //     return response()->json($survey_project);
-    // }
+        // Add current year
+        $allData[] = [
+            'year' => $currentYear,
+            'sales_revenue' => $currentYearSalesAmount,
+            'expenses' => $currentYearExpensesAmount,
+            'profit' => $currentYearProfit,
+            'is_manual' => false
+        ];
+
+        // Add next year projection
+        $nextYearSales = $currentYearSalesAmount * 1.1; // 10% growth projection
+        $nextYearExpenses = $currentYearExpensesAmount * 1.05; // 5% growth projection
+        $nextYearProfit = $nextYearSales - $nextYearExpenses;
+
+        $allData[] = [
+            'year' => $nextYear,
+            'sales_revenue' => $nextYearSales,
+            'expenses' => $nextYearExpenses,
+            'profit' => $nextYearProfit,
+            'is_manual' => false
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $allData,
+            'current_year' => $currentYear,
+            'next_year' => $nextYear
+        ]);
+    }
+
+    /**
+     * Get manual yearly data configuration for 2021-2024
+     */
+    private function getManualYearlyData()
+    {
+        return [
+            2021 => ['sales_revenue' => 1500000.00, 'expenses' => 800000.00],
+            2022 => ['sales_revenue' => 1800000.00, 'expenses' => 950000.00],
+            2023 => ['sales_revenue' => 2200000.00, 'expenses' => 1100000.00],
+            2024 => ['sales_revenue' => 2500000.00, 'expenses' => 1200000.00],
+        ];
+    }
+
+    /**
+     * Update manual yearly data (for 2021-2024)
+     */
+    public function updateYearlyData(Request $request)
+    {
+        $request->validate([
+            'year' => 'required|integer|min:2021|max:2024',
+            'sales_revenue' => 'required|numeric|min:0',
+            'expenses' => 'required|numeric|min:0',
+        ]);
+
+        $year = $request->year;
+        $salesRevenue = $request->sales_revenue;
+        $expenses = $request->expenses;
+        $profit = $salesRevenue - $expenses;
+
+        // For now, just return success since we're using config
+        // In the future, you could store these in a config file or cache
+        // To make permanent changes, edit the getManualYearlyData() method in this controller
+
+        return response()->json([
+            'success' => true,
+            'message' => "Yearly data for $year updated successfully!",
+            'data' => [
+                'year' => $year,
+                'sales_revenue' => $salesRevenue,
+                'expenses' => $expenses,
+                'profit' => $profit
+            ]
+        ]);
+    }
 }

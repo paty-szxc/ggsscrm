@@ -220,10 +220,25 @@ class SalesRevenueController extends Controller
     public function yearlySales(){
         $currentYear = date('Y');
         
+        Log::info('YearlySales called for year: ' . $currentYear);
+        
+        // Check if there are any sales records in the database
+        $totalSalesRecords = DB::table('sales_revenue')->count();
+        $salesWithDates = DB::table('sales_revenue')->whereNotNull('date_of_survey')->count();
+        $salesThisYear = DB::table('sales_revenue')->whereYear('date_of_survey', $currentYear)->count();
+        
+        Log::info('Sales counts:', [
+            'total' => $totalSalesRecords,
+            'with_dates' => $salesWithDates,
+            'this_year' => $salesThisYear
+        ]);
+        
         $totalSales = DB::table('sales_revenue')
             ->select(DB::raw('SUM(project_cost) as yearly_total'))
-            ->whereYear('date_of_survey', $currentYear)
+            ->whereRaw('YEAR(date_of_survey) = ?', [$currentYear])
             ->first();
+
+        Log::info('YearlySales query result:', ['result' => $totalSales, 'currentYear' => $currentYear]);
 
         return response()->json([
             'year' => $currentYear,

@@ -54,17 +54,27 @@ class ConstructionProjectsController extends Controller
 
     public function insert(Request $req){
         $userId = Auth::id();
+        //calculate duration if start_actual and date_completed are provided
+        $duration = null;
+        if(!empty($req->to_update['start_actual']) && !empty($req->to_update['date_completed'])){
+            $startDate = new \DateTime($req->to_update['start_actual']);
+            $endDate = new \DateTime($req->to_update['date_completed']);
+            $interval = $startDate->diff($endDate);
+            $duration = $interval->days;
+        }
+
         $insert = ConstructionProjects::create([
             'user_id' => $userId,
             'date_started' => $req->to_update['date_started'],
             'location' => $req->to_update['location'],
             'particulars' => $req->to_update['particulars'],
             'processed_by' => $req->to_update['processed_by'] ?? null, 
-            'start_process' => isset($req->to_update['start_process']) ? $req->to_update['start_process'] : 0, 
-            'end_process' => isset($req->to_update['end_process']) ? $req->to_update['end_process'] : 0,
-            'start_actual' => isset($req->to_update['start_actual']) ? $req->to_update['start_actual'] : 0,
-            'end_actual' => isset($req->to_update['end_actual']) ? $req->to_update['end_actual'] : 0,
+            'start_process' => $req->to_update['start_process'] ?? null, 
+            'end_process' => $req->to_update['end_process'] ?? null,
+            'start_actual' => $req->to_update['start_actual'] ?? null,
+            'end_actual' => $req->to_update['end_actual'] ?? null,
             'date_completed' => $req->to_update['date_completed'] ?? null,
+            'duration' => $duration,
             'contact_person' => $req->to_update['contact_person'] ?? null,
             'contact_no' => $req->to_update['contact_no'] ?? null, 
             'remarks' => $req->to_update['remarks'] ?? null,
@@ -76,17 +86,26 @@ class ConstructionProjectsController extends Controller
     }
 
     public function update(Request $req){
+        //calculate duration if start_actual and date_completed are provided
+        $duration = null;
+        if(!empty($req->to_update['start_actual']) && !empty($req->to_update['date_completed'])){
+            $startDate = new \DateTime($req->to_update['start_actual']);
+            $endDate = new \DateTime($req->to_update['date_completed']);
+            $interval = $startDate->diff($endDate);
+            $duration = $interval->days;
+        }
         $update = ConstructionProjects::find($req->to_update['id']);
         $update->update([
             'date_started' => $req->to_update['date_started'],
             'location' => $req->to_update['location'],
             'particulars' => $req->to_update['particulars'],
             'processed_by' => $req->to_update['processed_by'], 
-            'start_process' => isset($req->to_update['start_process']) ? $req->to_update['start_process'] : 0, 
-            'end_process' => isset($req->to_update['end_process']) ? $req->to_update['end_process'] : 0,
-            'start_actual' => isset($req->to_update['start_actual']) ? $req->to_update['start_actual'] : 0,
-            'end_actual' => isset($req->to_update['end_actual']) ? $req->to_update['end_actual'] : 0,
+            'start_process' => $req->to_update['start_process'], 
+            'end_process' => $req->to_update['end_process'],
+            'start_actual' => $req->to_update['start_actual'],
+            'end_actual' => $req->to_update['end_actual'],
             'date_completed' => $req->to_update['date_completed'],
+            'duration' => $duration,
             'contact_person' => $req->to_update['contact_person'],
             'contact_no' => $req->to_update['contact_no'], 
             'remarks' => $req->to_update['remarks'],

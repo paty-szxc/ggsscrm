@@ -5,10 +5,14 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ConstructionProjectsController;
 use App\Http\Controllers\ConstructionSalesRevenueController;
 use App\Http\Controllers\OfficeSuppliesController;
+use App\Http\Controllers\QuotationsController;
 use App\Http\Controllers\SalesRevenueController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\RelocationSurveyController;
+use App\Http\Controllers\SurveyEquipmentsController;
+use App\Http\Controllers\VehicleMaintenanceController;
+use App\Models\SurveyEquipments;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 /*
@@ -42,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::inertia('/ggss', 'GGSS/Ggss');
     Route::inertia('/gco', 'GCO/Gco');
 
-    //GGSS routes
+    //SECTION -  GGSS routes
     Route::group(['headerTitle' => 'Geopete Geodetic Surveying Services'], function() {
         Route::inertia('/dashboard', 'GGSS/SurveyDashboard');
         Route::inertia('/survey_monitoring', 'GGSS/SurveyMonitoring');
@@ -51,6 +55,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::inertia('/office_equipment', 'GGSS/OfficeEquipment');
         Route::inertia('/company_assets', 'GGSS/CompanyAsset');
         Route::inertia('/survey_quotation', 'GGSS/SurveyQuotations');
+        Route::inertia('/survey_equipments', 'GGSS/SurveyEquipments');
+        Route::inertia('/govt_external', 'GGSS/SurveyGovtAffairs');
     });
 
     Route::post('/logout', [LoginController::class, 'destroy'])
@@ -61,7 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('import_survey_data', [SurveyController::class, 'import']);
     Route::post('insert_survey_data', [SurveyController::class, 'insert']);
     Route::post('update_survey_data', [SurveyController::class, 'update']);
-    Route::get('get_sales_revenue_data', [SalesRevenueController::class, 'index']);
+    Route::get('yearly_chart_data', [SurveyController::class, 'getYearlyChartData']);
     Route::post('import_sales_revenue_data', [SalesRevenueController::class, 'import']);
     Route::post('insert_sales_revenue_data', [SalesRevenueController::class, 'insert']);
     Route::post('update_sales_revenue_data', [SalesRevenueController::class, 'update']);
@@ -77,21 +83,34 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('yearly_expenses', [VoucherController::class, 'yearlyExpenses']);
 
     //QUOTATIONS
-    Route::get('/generate_relo_survey_pdf', [RelocationSurveyController::class, 'generatePdf']);
+    Route::get('/get_quotations', [QuotationsController::class, 'index']);
+    Route::post('insert_survey_quotation', [QuotationsController::class, 'insert']);
+    Route::put('update_survey_quotation/{id}', [QuotationsController::class, 'update']);
 
+    //OFFICE SUPPLIES
     Route::get('get_office_supplies', [OfficeSuppliesController::class, 'index']);
     Route::post('insert_office_supplies', [OfficeSuppliesController::class, 'insert']);
     Route::post('update_office_supplies', [OfficeSuppliesController::class, 'update']);
 
+    //SURVEY EQUIPMENTS
+    Route::get('get_survey_equipments', [SurveyEquipmentsController::class, 'index']);
+    Route::post('insert_survey_equipment', [SurveyEquipmentsController::class, 'insert']);
+    Route::post('update_survey_equipment', [SurveyEquipmentsController::class, 'update']);
+
+    //COMPANY ASSET
     Route::get('get_house_and_lot', [OfficeSuppliesController::class, 'getHaL']);
     Route::post('insert_house_and_lot', [OfficeSuppliesController::class, 'insertHaL']);
     Route::put('update_house_and_lot/{id}', [OfficeSuppliesController::class, 'updateHaL']);
     Route::get('get_company_vehicle', [OfficeSuppliesController::class, 'getCompVehicle']);
     Route::post('insert_company_vehicle', [OfficeSuppliesController::class, 'insertCV']);
     Route::put('update_company_vehicle/{id}', [OfficeSuppliesController::class, 'updateCV']);
+    Route::get('get_maintenance_table_data', [VehicleMaintenanceController::class, 'index']);
+    Route::get('get_maintenance_record/{id}', [VehicleMaintenanceController::class, 'show']);
+    Route::post('insert_data_in_maintenance_table', [VehicleMaintenanceController::class, 'insert']);
+    Route::put('update_data_in_maintenance_table/{id}', [VehicleMaintenanceController::class, 'update']);
 
 
-    //GCO routes
+    //SECTION -  GCO routes
     Route::group(['headerTitle' => 'Geopete Construction'], function() {
         Route::inertia('/construction_dashboard', 'GCO/ConstructionDashboard');
         Route::inertia('/construction_monitoring', 'GCO/ConstructionMonitoring');

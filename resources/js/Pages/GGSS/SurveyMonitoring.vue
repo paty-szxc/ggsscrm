@@ -409,7 +409,6 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import SurveyTable from '../../Components/SurveyTable.vue';
 import Snackbar from '../../Components/Snackbar.vue';
-import { bindProps } from 'vuetify/lib/util/bindProps.mjs';
 
 const headers = ref([
     { title: 'Date Started', value: 'date_started', align: 'center' },
@@ -651,31 +650,31 @@ const submitForm = async () => {
 
     uploadFiles()
 
-    const url = isEditMode.value ? 'update_survey_data' : 'insert_survey_data';
+    const url = isEditMode.value ? 'update_survey_data' : 'insert_survey_data'
 
     axios({
         method: 'post',
         url,
         data: { to_update }
-    }).then((res) => {
-        fetchSurveyData();
+    }).then(() => {
+        fetchSurveyData()
         if(isEditMode.value){
-            snackbar.value.alertUpdate();
+            snackbar.value.alertUpdate()
         } else {
-            snackbar.value.alertSuccess();
+            snackbar.value.alertSuccess()
         }
-        dialog.value = false;
-        tempData.value = {};
+        dialog.value = false
+        tempData.value = {}
     }).catch(() => {
-        if (isEditMode.value) {
+        if(isEditMode.value){
             snackbar.value.alertCustom('There was an error updating your data.')
         }
         else{
-            snackbar.value.alertError();
+            snackbar.value.alertError()
             
         }
-    });
-};
+    })
+}
 
 const openEditDialog = (item) => {
     fetchSurveyData()
@@ -685,7 +684,7 @@ const openEditDialog = (item) => {
     edit.value = { ...item }
     tempData.value.survey = item.survey == 1 ? true : false
     files.value = item.files || []
-    selectedFiles.value = [];
+    selectedFiles.value = []
     internalSelectedFiles.value = []
     // tempData.value.data_process = item.data_process == 1 ? true : false
     // tempData.value.plans = item.plans == 1 ? true : false
@@ -694,8 +693,8 @@ const openEditDialog = (item) => {
 const openAddDialog = () => {
     isEditMode.value = false
     dialog.value = true
-    tempData.value = {}; //clear previous data
-    files.value = []; //no uploaded files for new entry
+    tempData.value = {} //clear previous data
+    files.value = [] //no uploaded files for new entry
     selectedFiles.value = []; //clear new selections
     internalSelectedFiles.value = [];
 

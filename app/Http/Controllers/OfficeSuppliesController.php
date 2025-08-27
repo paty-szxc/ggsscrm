@@ -69,15 +69,15 @@ class OfficeSuppliesController extends Controller
         // return HouseAndLot::all();
         $houseAndLots = HouseAndLot::orderBy('address', 'asc')->get();
 
-        // Append full URL for PDF to each item before returning the response
-        foreach ($houseAndLots as $item) {
-            if ($item->pdf_path) {
+        //append full URL for PDF to each item before returning the response
+        foreach($houseAndLots as $item){
+            if($item->pdf_path){
                 $item->pdf_url = Storage::url($item->pdf_path);
-            } else {
+            }
+            else{
                 $item->pdf_url = null;
             }
         }
-
         return $houseAndLots;
     }
 
@@ -198,10 +198,11 @@ class OfficeSuppliesController extends Controller
         $vehicles = CompanyVehicle::all();
 
         // Append full URL for PDF to each item before returning the response
-        foreach ($vehicles as $item) {
-            if ($item->pdf_path) {
+        foreach($vehicles as $item){
+            if($item->pdf_path){
                 $item->vehicle_pdf_url = Storage::url($item->pdf_path);
-            } else {
+            }
+            else{
                 $item->vehicle_pdf_url = null;
             }
         }
