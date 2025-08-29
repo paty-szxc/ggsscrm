@@ -272,17 +272,6 @@ const closeAddDialog = () => {
 const openAddDialog = () => {
     isEditMode.value = false
     dialog.value = true
-
-    if(currentUser.value){
-        const excludedUserIds = [2, 4]
-
-        if(excludedUserIds.includes(currentUser.value.id)){
-            tempData.value.processed_by = currentUser.value.username
-        } 
-        else{
-            tempData.value.processed_by = `Engr. ${currentUser.value.username}`
-        }
-    }
 }
 
 const fetchCurrentUser = async () => {

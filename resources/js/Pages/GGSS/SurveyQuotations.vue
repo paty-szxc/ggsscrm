@@ -47,7 +47,8 @@
                                 color="primary"
                                 variant="text"
                                 size="large"
-                                class="!normal-case">
+                                class="!normal-case"
+                                @click="openPdfViewer(item.attachment_url)">
                             <v-icon start color="red">mdi-file-pdf-box</v-icon>
                             <span class="ml-2">{{ getFileNameVehicle(item.attachment_url) }}</span>
                             </v-btn>
@@ -66,7 +67,8 @@
                                 color="primary"
                                 variant="text"
                                 size="large"
-                                class="!normal-case">
+                                class="!normal-case"
+                                @click="openPdfViewer(item.revised_attachment_url)">
                             <v-icon start color="red">mdi-file-pdf-box</v-icon>
                             <span class="ml-2">{{ getFileNameVehicle(item.revised_attachment_url) }}</span>
                             </v-btn>
@@ -93,7 +95,7 @@
                 </v-tooltip>
             </template>
         </v-data-table>
-
+                                        <!-- NOTE - start of add & edit dialog -->
         <v-dialog class="transition-discrete md:transition-normal" persistent v-model="dialog" width="450px" no-click-animation>
             <v-card>
                 <v-card-title 
@@ -189,7 +191,12 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-
+                                        <!-- NOTE - pdf viewer dialog -->
+        <PdfViewerDialog 
+            :dialog="pdfViewerDialog" 
+            :pdf-url="pdfToViewUrl" 
+            @update:dialog="pdfViewerDialog = $event">
+        </PdfViewerDialog>
         <Snackbar ref="snackbar"></Snackbar>
     </v-container>
 </template>
@@ -197,6 +204,7 @@
 <script setup>
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
+import PdfViewerDialog from '../../Components/PdfViewerDialog.vue';
 import Snackbar from '../../Components/Snackbar.vue';
 
 const snackbar = ref(null)
@@ -223,6 +231,14 @@ const isEditMode = ref('add')
 const current_attachment_url = ref(null)
 const current_revised_attachment_url = ref(null)
 const editing = ref(null)
+
+const pdfViewerDialog = ref(false)
+const pdfToViewUrl = ref(null)
+
+const openPdfViewer = (url) => {
+    pdfToViewUrl.value = url
+    pdfViewerDialog.value = true
+}
 
 const submit = async () => {
     const formData = new FormData()

@@ -155,15 +155,15 @@
                             variant="outlined"
                             :rules="[v => !v || v.length === 0 || v[0].size < 2000000 || 'PDF size should be less than 2 MB!']"
                         ></v-file-input>
-                        <div v-if="house_current_pdf_url && halDialogMode === 'edit'" class="mt-2 text-sm text-gray-600">
+                        <div v-if="currentPdfUrl && halDialogMode === 'edit'" class="mt-2 text-sm text-gray-600">
                             Current PDF:
                             <v-btn
                                 color="primary"
                                 variant="text"
                                 size="small"
                                 class="!normal-case"
-                                @click="openPdfViewer(house_current_pdf_url)">
-                                <v-icon start>mdi-file-pdf-box</v-icon> View {{ getFileName(house_current_pdf_url) }}
+                                @click="openPdfViewer(currentPdfUrl)">
+                                <v-icon start>mdi-file-pdf-box</v-icon> View {{ getFileName(currentPdfUrl) }}
                             </v-btn>
                         </div>
                     </v-card-text>
@@ -257,7 +257,7 @@
                                         variant="text"
                                         size="large"
                                         class="!normal-case"
-                                        @click="openPdfViewerVehicle(item.vehicle_pdf_url)">
+                                        @click="openPdfViewer(item.vehicle_pdf_url)">
                                         <v-icon start color="red">mdi-file-pdf-box</v-icon>
                                         <span class="ml-2">{{ getFileNameVehicle(item.vehicle_pdf_url) }}</span>
                                         </v-btn>
@@ -370,15 +370,15 @@
                             variant="outlined"
                             :rules="[v => !v || v.length === 0 || v[0].size < 104857600 || 'PDF size should be less than 10 MB!']"
                         ></v-file-input>
-                        <div v-if="vehicle_current_pdf_url && vehicleDialogMode === 'edit'" class="mt-2 text-sm text-gray-600">
+                        <div v-if="currentPdfUrl && vehicleDialogMode === 'edit'" class="mt-2 text-sm text-gray-600">
                             Current PDF:
                             <v-btn
                                 color="primary"
                                 variant="text"
                                 size="small"
                                 class="!normal-case"
-                                @click="openPdfViewerVehicle(vehicle_current_pdf_url)">
-                                <v-icon start>mdi-file-pdf-box</v-icon> View {{ getFileNameVehicle(vehicle_current_pdf_url) }}
+                                @click="openPdfViewerVehicle(currentPdfUrl)">
+                                <v-icon start>mdi-file-pdf-box</v-icon> View {{ getFileNameVehicle(currentPdfUrl) }}
                             </v-btn>
                         </div>
                     </v-card-text>
@@ -402,7 +402,7 @@
         </div>
 
                                     <!-- NOTE - house & lot PDF viewer dialog -->
-        <v-dialog v-model="pdfViewerDialog" fullscreen>
+        <!-- <v-dialog v-model="pdfViewerDialog" fullscreen>
             <v-card>
                 <v-toolbar style="background: linear-gradient(135deg, #0047AB, #50C878); 
                     color: white;">
@@ -422,9 +422,9 @@
                     </div>
                 </v-card-text>
             </v-card>
-        </v-dialog>
+        </v-dialog> -->
                                     <!-- NOTE - vehicle PDF viewer dialog -->
-        <v-dialog v-model="pdfViewerVehicleDialog" fullscreen>
+        <!-- <v-dialog v-model="pdfViewerVehicleDialog" fullscreen>
             <v-card>
                 <v-toolbar style="background: linear-gradient(135deg, #0047AB, #50C878); 
                     color: white;">
@@ -444,7 +444,13 @@
                     </div>
                 </v-card-text>
             </v-card>
-        </v-dialog>
+        </v-dialog> -->
+
+        <PdfViewerDialog 
+            :dialog="pdfViewerDialog" 
+            :pdf-url="currentPdfUrl" 
+            @update:dialog="pdfViewerDialog = $event">
+        </PdfViewerDialog>
 
                                         <!-- NOTE - maintenance table dialog -->
         <v-dialog class="transition-discrete md:transition-normal" persistent v-model="maintenanceDialog" width="850">
@@ -503,7 +509,7 @@
                                         variant="text"
                                         size="large"
                                         class="!normal-case"
-                                        @click="openMaintenaceViewer(item.maintenance_url)">
+                                        @click="openPdfViewer(item.maintenance_url)">
                                         <v-icon start color="red">mdi-file-pdf-box</v-icon>
                                         <span class="ml-2">{{ getFileNameVehicle(item.maintenance_url) }}</span>
                                         </v-btn>
@@ -632,14 +638,14 @@
                                 }
                             ]"
                         />
-                        <div v-if="current_maintenance_url && maintenaceDialogMode === 'edit'" class="mt-2 text-sm text-gray-600">
+                        <div v-if="currentPdfUrl && maintenaceDialogMode === 'edit'" class="mt-2 text-sm text-gray-600">
                             Current PDF:
                             <v-btn
                                 color="primary"
                                 variant="text"
                                 size="small"
                                 class="!normal-case"
-                                @click="openMaintenaceViewer(current_maintenance_url)">
+                                @click="openPdfViewer(currentPdfUrl)">
                                 <v-icon start>mdi-file-box</v-icon> View
                             </v-btn>
                         </div>
@@ -664,7 +670,7 @@
         </v-dialog>
 
                                             <!-- NOTE - maintenance viewer dialog -->
-        <v-dialog v-model="pdfViewerMaintenanceDialog" fullscreen>
+        <!-- <v-dialog v-model="pdfViewerMaintenanceDialog" fullscreen>
             <v-card>
                 <v-toolbar style="background: linear-gradient(135deg, #0047AB, #50C878); 
                     color: white;">
@@ -674,7 +680,7 @@
                             icon
                             @click="pdfViewerMaintenanceDialog = false">
                             <v-icon color="red">mdi-close</v-icon>
-                    </v-btn>
+                        </v-btn>
                     </v-toolbar-items>
                 </v-toolbar>
                 <v-card-text class="flex-grow pa-0">
@@ -684,7 +690,7 @@
                     </div>
                 </v-card-text>
             </v-card>
-        </v-dialog>
+        </v-dialog> -->
         <Snackbar ref="snackbar"></Snackbar>
     </v-container>
 </template>
@@ -692,8 +698,9 @@
 <script setup>
 import axios from 'axios'
 import { onMounted, ref, computed } from 'vue'
-import Snackbar from '../../Components/Snackbar.vue'
 import { usePage } from '@inertiajs/vue3'
+import PdfViewerDialog from '../../Components/PdfViewerDialog.vue'
+import Snackbar from '../../Components/Snackbar.vue'
 
 const headers = ref([
     { title: 'Date', value: 'date', align: 'center'},
@@ -721,10 +728,10 @@ const pdfViewerMaintenanceDialog = ref(false)
 const currentMaintenanceUrl = ref(null)
 const current_maintenance_url = ref(null)
 
-const openMaintenaceViewer = (url) => { 
-    currentMaintenanceUrl.value = url
-    pdfViewerMaintenanceDialog.value = true
-};
+// const openMaintenaceViewer = (url) => { 
+//     currentMaintenanceUrl.value = url
+//     pdfViewerMaintenanceDialog.value = true
+// };
 
 // const submitForm = async () => {
 //     const { valid } = await maintenanceForm.value.validate()
@@ -970,6 +977,15 @@ const userCanEditOrAdd = computed(() => {
 })
 //END SECTION - user role computed properties
 
+//!SECTION - pdf viewer variable
+const pdfViewerDialog = ref(false);
+const currentPdfUrl = ref(null);
+
+const openPdfViewer = (url) => {
+    currentPdfUrl.value = url;
+    pdfViewerDialog.value = true;
+};
+
 //SECTION - start of house & lot variables
 const houseHeaders = ref([
     { title: 'Address', value: 'address', align: 'center'},
@@ -982,9 +998,9 @@ const house_address = ref('')
 const house_cost = ref('')
 const searchHaL = ref('')
 const house_pdf_file = ref(null)
-const house_current_pdf_url = ref(null)
-const currentPdfUrl = ref(null)
-const pdfViewerDialog = ref(false)
+// const house_current_pdf_url = ref(null)
+// const currentPdfUrl = ref(null)
+// const pdfViewerDialog = ref(false)
 const halDialog = ref(false)
 const halDialogMode = ref('add')
 const editingHaL = ref(null) //NOTE - end of house & lot variables
@@ -1003,8 +1019,8 @@ const vehicle_cost = ref('')
 const vehicle_pdf_file = ref(null)
 const vehicle_current_pdf_url = ref(null)
 const searchVC = ref('')
-const currentPdfVUrl = ref(null)
-const pdfViewerVehicleDialog = ref(false)
+// const currentPdfVUrl = ref(null)
+// const pdfViewerVehicleDialog = ref(false)
 const vehicleDialog = ref(false)
 const vehicleDialogMode = ref('add')
 const editingVehicle = ref(null) //NOTE - end of vehicle variables
@@ -1019,15 +1035,15 @@ const getFileNameVehicle = (url) => {
     return url.split('/').pop() || 'document.pdf'
 }
 
-const openPdfViewerVehicle = (url) => { //NOTE - vehicle PDF viewer
-    currentPdfVUrl.value = url
-    pdfViewerVehicleDialog.value = true
-}
+// const openPdfViewerVehicle = (url) => { //NOTE - vehicle PDF viewer
+//     currentPdfVUrl.value = url
+//     pdfViewerVehicleDialog.value = true
+// }
 
-const openPdfViewer = (url) => { //NOTE - house & lot PDF viewer
-    currentPdfUrl.value = url
-    pdfViewerDialog.value = true
-}
+// const openPdfViewer = (url) => { //NOTE - house & lot PDF viewer
+//     currentPdfUrl.value = url
+//     pdfViewerDialog.value = true
+// }
 
 //!SECTION - start of vehicle functions
 const submitVehicle = async () => { //NOTE - start of submit & update function for company vehicle
@@ -1107,7 +1123,7 @@ const closeVehicleDialog = () => { //NOTE - close vehicle dialog
     vehicle.value = ''
     vehicle_cost.value = ''
     vehicle_pdf_file.value = null
-    vehicle_current_pdf_url.value = null
+    currentPdfUrl.value = null
     editingVehicle.value = null
     vehicleDialogMode.value = 'add' //reset mode to 'add' for next time
 }
@@ -1123,13 +1139,13 @@ const openVehicleDialog = (mode, item = null) => { //NOTE - add & edit vehicle d
         editingVehicle.value = item
         vehicle.value = item.vehicle_name
         vehicle_cost.value = item.originalCost
-        vehicle_current_pdf_url.value = item.vehicle_pdf_url //set the current PDF URL for display
+        currentPdfUrl.value = item.vehicle_pdf_url //set the current PDF URL for display
     } 
     else{
         editingVehicle.value = null
         vehicle.value = ''
         vehicle_cost.value = ''
-        vehicle_current_pdf_url.value = null //clear current PDF URL for add mode
+        currentPdfUrl.value = null //clear current PDF URL for add mode
     }
 } 
 
@@ -1225,7 +1241,7 @@ const closeHaLDialog = () => {
     house_address.value = ''
     house_cost.value = ''
     house_pdf_file.value = null
-    house_current_pdf_url.value = null
+    currentPdfUrl.value = null
     editingHaL.value = null
     halDialogMode.value = 'add' //reset mode to 'add' for next time
 }
@@ -1235,18 +1251,18 @@ const openHaLDialog = (mode, item = null) => { //NOTE - house & lot dialog
     halDialog.value = true
     house_pdf_file.value = null //clear previous file selection
 
-    if (mode === 'edit' && item) {
+    if(mode === 'edit' && item){
         console.log(item)
-        
         editingHaL.value = item
         house_address.value = item.address
         house_cost.value = item.originalCost
-        house_current_pdf_url.value = item.pdf_url //set the current PDF URL for display
-    } else {
+        currentPdfUrl.value = item.pdf_url //set the current PDF URL for display
+    }
+    else{
         editingHaL.value = null
         house_address.value = ''
         house_cost.value = ''
-        house_current_pdf_url.value = null //clear current PDF URL for add mode
+        currentPdfUrl.value = null //clear current PDF URL for add mode
     }
 } //!SECTION - end of house & lot functions
 
