@@ -15,6 +15,30 @@ const props = defineProps({
 	chartOptions: {
 		type: Object,
 		default: () => ({})
+	},
+	salesUrl: {
+		type: String,
+		default: '/yearly_sales'
+	},
+	expensesUrl: {
+		type: String,
+		default: '/yearly_expenses'
+	},
+	title: {
+		type: String,
+		default: 'Yearly Sales vs Expenses'
+	},
+	labelSales: {
+		type: String,
+		default: 'Sales'
+	},
+	labelExpenses: {
+		type: String,
+		default: 'Expenses'
+	},
+	manualDataOverride: {
+		type: Object,
+		default: null
 	}
 });
 
@@ -22,8 +46,8 @@ const chart = ref(null);
 let chartInstance = null;
 const currentYearData = ref(null);
 
-// Manual data for previous years (2021-2024) with default values
-const manualData = ref({
+//manual data for previous years (2021-2024) with default values
+const manualData = ref(props.manualDataOverride || {
 	2021: { sales_revenue: 3545150, expenses: 800000 },
 	2022: { sales_revenue: 7232601, expenses: 950000 },
 	2023: { sales_revenue: 16635500, expenses: 1100000 },
@@ -34,12 +58,12 @@ const fetchCurrentYearData = async () => {
 	try{
 		const currentYear = new Date().getFullYear();
 		
-		// Always fetch current year data, regardless of manual data
+		//always fetch current year data, regardless of manual data
 		let sales = { total_sales: 0 };
 		let expenses = { grand_total: 0 };
 		
 		try{
-			const res = await axios.get('/yearly_sales');
+			const res = await axios.get(props.salesUrl);
 			sales = res.data;
 		} 
 		catch(e){
@@ -47,7 +71,7 @@ const fetchCurrentYearData = async () => {
 		}
 		
 		try{
-			const res = await axios.get('/yearly_expenses');
+			const res = await axios.get(props.expensesUrl);
 			expenses = res.data;
 		}
 		catch(e){
@@ -117,14 +141,14 @@ const config = {
 	labels: years,
 	datasets: [
 		{
-		label: 'Sales',
+		label: props.labelSales,
 		data: salesData,
 		backgroundColor: 'rgba(54, 162, 235, 0.7)',
 		borderColor: 'rgba(54, 162, 235, 1)',
 		borderWidth: 1
 		},
 		{
-		label: 'Expenses',
+		label: props.labelExpenses,
 		data: expensesData,
 		backgroundColor: 'rgba(255, 99, 132, 0.7)',
 		borderColor: 'rgba(255, 99, 132, 1)',
@@ -141,7 +165,7 @@ const config = {
 		},
 		title: {
 		display: true,
-		text: 'Yearly Sales vs Expenses',
+		text: props.title,
 		font: { size: 16 }
 		},
 				tooltip: {

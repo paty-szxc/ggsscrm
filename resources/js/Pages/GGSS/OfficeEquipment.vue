@@ -17,7 +17,7 @@
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
                             <v-btn
-                                @click="openAddDialog()"
+                                @click="openDialog('add')"
                                 color="info"
                                 icon
                                 size="small"
@@ -38,8 +38,23 @@
             :headers="headers"
             :items="items"
             :search="search"
-            item-key="id"
-            @dblclick:row="openEditDialog">
+            item-key="id">
+            <template v-slot:item.actions="{ item }">
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-icon
+                            @click="openDialog('edit', item)"
+                            size="small"
+                            class="me-2"
+                            color="info"
+                            style="cursor: pointer;"
+                            v-bind="props">
+                            mdi-pencil
+                        </v-icon>
+                    </template>
+                    <span>Edit</span>
+                </v-tooltip>
+            </template>
         </v-data-table>
 
         <v-dialog class="transition-discrete md:transition-normal" v-model="dialog" no-click-animation persistent width="700">
@@ -99,7 +114,7 @@
                     @click="submitForm"
                     color="green darken-1"
                     text>
-                    Submit
+                    {{ isEditMode ? 'Update' : 'Submit' }}
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -122,6 +137,7 @@ const headers = ref([
     { title: 'Unit', value: 'unit', align: 'center' },
     { title: 'C/O', value: 'care_of', align: 'center' },
     { title: 'Remarks', value: 'remarks', align: 'center' },
+    { title: 'Actions', value: 'actions', align: 'center' },
 ])
 const items = ref([])
 const tempData = ref({})
@@ -159,32 +175,63 @@ const snackbar = ref(null)
 // }
 
 const submitForm = async () => {
-    try{
-        const url = isEditMode.value ? 'update_office_supplies' : 'insert_office_supplies';
-        const res = await axios({
-            method: 'post',
-            url,
-            data: tempData.value
-        });
+    // try{
+    //     ;
+    //     const res = await axios({
+    //         method: 'post',
+    //         url,
+    //         data: tempData.value
+    //     });
 
-        if(res.data.success){
-            fetchOfficeSupplies()
-            if(isEditMode.value){
-                snackbar.value.alertUpdate()
-            } 
-            else{
-                snackbar.value.alertSuccess()
-            }
-            dialog.value = false
-            tempData.value = {}
-        } 
+    //     if(res.data.success){
+    //         fetchOfficeSupplies()
+    //         if(isEditMode.value){
+    //             snackbar.value.alertUpdate()
+    //         } 
+    //         else{
+    //             snackbar.value.alertSuccess()
+    //         }
+    //         dialog.value = false
+    //         tempData.value = {}
+    //     } 
+    //     else{
+    //         if(isEditMode.value){
+    //             snackbar.value.alertCustom('There was an error updating your data.')
+    //         }
+    //         else{
+    //             snackbar.value.alertError()
+    //         }
+    //     }
+    // }
+    // catch(err){
+    //     snackbar.value.alertWarning('Validation failed. Please check your inputs.', err);
+    // }
+
+    const url = isEditMode.value ? 'update_office_supplies' : 'insert_office_supplies'
+    
+    axios({
+        method: 'post',
+        url,
+        data: tempData.value
+    }).then(() => {
+        fetchOfficeSupplies()
+        if(isEditMode.value){
+            snackbar.value.alertUpdate()
+        }
+        else{
+            snackbar.value.alertSuccess()
+        }
+        fetchOfficeSupplies()
+        dialog.value = false
+        tempData.value = {}
+    }).catch(() => {
+        if(isEditMode.value){
+            snackbar.value.alertCustom('There was an error updating your data.')
+        }
         else{
             snackbar.value.alertError()
         }
-    }
-    catch(err){
-        snackbar.value.alertWarning('Validation failed. Please check your inputs.', err);
-    }
+    })
 }
 
 const openEditDialog = (event, { item }) => {
@@ -193,9 +240,18 @@ const openEditDialog = (event, { item }) => {
     dialog.value = true
 }
 
-const openAddDialog = () => { 
-    isEditMode.value = false
+const openDialog = (mode, item = null) => { 
+    isEditMode.value = (mode === 'edit')
     dialog.value = true
+
+    if(mode === 'edit' && item){
+        tempData.value = { ...item }
+        dialog.value = true
+    }
+    else if(mode === 'add'){
+        tempData.value = {}
+        dialog.value = true
+    }
 }
 
 const closeAddDialog = () => {

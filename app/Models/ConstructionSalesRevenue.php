@@ -35,6 +35,7 @@ class ConstructionSalesRevenue extends Model
         'others',
         'remarks',
         'fully_paid_date',
+        'withholding_tax'
     ];
 
     protected static function boot(){

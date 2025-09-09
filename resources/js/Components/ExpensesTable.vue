@@ -1,6 +1,6 @@
 <template>
     <div class="overflow-x-auto">
-    <h3 class="text-lg font-semibold ml-4 ">Vouchers</h3>
+    <h3 class="text-lg font-semibold ml-4 ">{{ expensesType }} Vouchers Expenses</h3>
         <div class="flex justify-start mb-2 ml-3 space-x-12">
             <v-file-input
                 accept=".xlsx,.xls,.csv"
@@ -86,36 +86,24 @@
                         <v-table density="compact">
                             <thead>
                                 <tr>
-                                <th class="bg-inherit font-sans text-center">Office Supplies</th>
-                                <th class="bg-inherit font-sans text-center">Gasoline & Oil</th>
-                                <th class="bg-inherit font-sans text-center">Utilities (Electricty, Water, Internet, Assoc Dues)</th>
-                                <th class="bg-inherit font-sans text-center">Parking Fee</th>
-                                <th class="bg-inherit font-sans text-center">Toll Fee</th>
-                                <th class="bg-inherit font-sans text-center">Permits, Certification, & Tax</th>
-                                <th class="bg-inherit font-sans text-center">Transportation</th>
-                                <th class="bg-inherit font-sans text-center">Budget (Survey/Outside Office)/Commission or SOP</th>
-                                <th class="bg-inherit font-sans text-center">Representation Expense (Personal - Sir Pete)</th>
-                                <th class="bg-inherit font-sans text-center">OTHERS (Staff - Personal)</th>
-                                <th class="bg-inherit font-sans text-center">AMOUNT (GROSS OF VAT)</th>
-                                <th class="bg-inherit font-sans text-center">NET VAT</th>
-                                <th class="bg-inherit font-sans text-center">VAT</th>
+                                <th
+                                    v-for="col in expandedColumns"
+                                    :key="col.key"
+                                    class="bg-inherit font-sans text-center"
+                                >
+                                    {{ col.title }}
+                                </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="bg-inherit font-sans text-center">{{ item.office_supplies }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.gasoline_oil }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.utilities }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.parking_fee }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.toll_fee }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.permits_certification_tax }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.transportation }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.budget }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.representation_expense_personal }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.others_staff_personal }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.amount_gross_of_vat }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.net_of_vat }}</td>
-                                    <td class="bg-inherit font-sans text-center">{{ item.vat }}</td>
+                                    <td
+                                        v-for="col in expandedColumns"
+                                        :key="col.key"
+                                        class="bg-inherit font-sans text-center"
+                                    >
+                                        {{ item[col.key] }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </v-table>
@@ -136,26 +124,22 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
-    benefits_headers: {
-        type: Array,
-        default: () => []
-    },
-    repair_headers: {
-        type: Array,
-        default: () => []
-    },
     vouchers: {
         type: Array,
         default: () => []
     },
-    emp_benefits: {
+    expensesType: {
+        type: String,
+        default: 'Survey'
+    },
+    importUrl: {
+        type: String,
+        required: true
+    },
+    expandedColumns: {
         type: Array,
         default: () => []
     },
-    repairs_and_maintenance: {
-        type: Array,
-        default: () => []
-    }
 });
 
 const search = ref('')
@@ -188,13 +172,14 @@ const uploadFile = async () => {
 
     try{
         isLoading.value = true
-        const response = await axios.post('/import_vouchers_data', formData, {
+        const response = await axios.post(props.importUrl, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
         })
         alert(response.data.message || 'File imported successfully!')
         emit('refresh-data')
+        file.value = null
     }
     catch(error){
         console.error('Error uploading file:', error)

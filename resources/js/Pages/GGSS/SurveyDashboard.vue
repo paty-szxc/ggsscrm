@@ -21,7 +21,13 @@
                 />
             </div>
             <div>
-                <YearlyChart />
+                <YearlyChart 
+                    :salesUrl="'/yearly_sales'"
+                    :expensesUrl="'/yearly_expenses'"
+                    title="Yearly Sales vs Expenses"
+                    labelSales="Sales"
+                    labelExpenses="Expenses"
+                />
             </div>
         </div>
     </div>

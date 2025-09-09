@@ -14,7 +14,7 @@ class ConstructionSalesRevenueImport implements ToCollection, WithStartRow, With
     private $importedCount = 0;
     private $skippedCount = 0;
 
-    // Add these public methods to access the counts
+    //add these public methods to access the counts
     public function getImportedCount(): int
     {
         return $this->importedCount;
@@ -32,16 +32,16 @@ class ConstructionSalesRevenueImport implements ToCollection, WithStartRow, With
         foreach ($rows as $index => $row) {
             $rowNumber = $index + $this->startRow() + 1;
             
-            try {
+            try{
                 Log::debug("Processing row {$rowNumber}", ['data' => $row->toArray()]);
 
-                if ($this->isEmptyRow($row)) {
+                if($this->isEmptyRow($row)){
                     $this->skippedCount++;
                     Log::info("Skipping empty row {$rowNumber}");
                     continue;
                 }
 
-                if ($this->isMonthHeaderRow($row)) {
+                if($this->isMonthHeaderRow($row)){
                     $this->skippedCount++;
                     Log::info("Skipping month header row {$rowNumber}");
                     continue;
@@ -51,17 +51,22 @@ class ConstructionSalesRevenueImport implements ToCollection, WithStartRow, With
                 
                 Log::debug("Prepared data for row {$rowNumber}", $data);
 
+                //new validation: Check if first_collection is 30% of project_cost
+                $this->validateFirstCollection($rowNumber, $data);
+
                 $record = ConstructionSalesRevenue::create($data);
                 
-                if ($record->exists) {
+                if($record->exists){
                     $this->importedCount++;
                     Log::info("Successfully imported row {$rowNumber}", ['id' => $record->id]);
-                } else {
+                }
+                else{
                     $this->skippedCount++;
                     Log::error("Failed to create record for row {$rowNumber}");
                 }
 
-            } catch (\Exception $e) {
+            }
+            catch(\Exception $e){
                 Log::error("Error processing row {$rowNumber}: " . $e->getMessage(), [
                     'row_data' => $row->toArray(),
                     'error' => $e->getTraceAsString()
@@ -124,6 +129,27 @@ class ConstructionSalesRevenueImport implements ToCollection, WithStartRow, With
         ];
     }
 
+    private function validateFirstCollection(int $rowNumber, array $data)
+    {
+        $projectCost = $data['project_cost'];
+        $firstCollection = $data['first_collection'];
+
+        // Skip validation if either value is not a valid number
+        if (!is_numeric($projectCost) || !is_numeric($firstCollection)) {
+            Log::warning("Skipping 30% check on row {$rowNumber} due to non-numeric values.", ['project_cost' => $projectCost, 'first_collection' => $firstCollection]);
+            return;
+        }
+
+        // Calculate the expected first collection amount (30% less 2%)
+        $expectedFirstCollection = round(($projectCost * 0.30) * 0.98, 2);
+        
+        // Use a small tolerance for floating-point comparison
+        $tolerance = 0.01; 
+        if (abs($firstCollection - $expectedFirstCollection) > $tolerance) {
+            Log::warning("Row {$rowNumber}: First collection (₱{$firstCollection}) is not 30% of the project cost (₱{$projectCost}) less 2%. Expected value: ₱{$expectedFirstCollection}.");
+        }
+    }
+
     private function extractFullyPaidDate($remarks){
         if(!$remarks) return null;
         
@@ -134,8 +160,8 @@ class ConstructionSalesRevenueImport implements ToCollection, WithStartRow, With
     }
 
     private function cleanNumber($value){
-        if (is_null($value) || $value === '') return null;
-        if (is_numeric($value)) return (float) $value;
+        if(is_null($value) || $value === '') return null;
+        if(is_numeric($value)) return (float) $value;
         
         //remove all non-numeric characters except decimal point
         $cleaned = preg_replace('/[^\d\.]/', '', $value);

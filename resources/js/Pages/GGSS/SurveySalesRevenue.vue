@@ -56,8 +56,9 @@
                         @input="handleCurrencyInput('project_cost')"
                         @blur="formatCurrencyField('project_cost')">
                     </v-text-field>
-                    <v-date-input 
+                    <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="1st Collection Date"
@@ -77,6 +78,7 @@
                     </v-text-field>
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="2nd Collection Date"
@@ -96,6 +98,7 @@
                     </v-text-field>
                     <v-date-input 
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="3rd Collection Date"
@@ -115,6 +118,7 @@
                     </v-text-field>
                     <v-date-input 
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="4th Collection Date"
@@ -256,10 +260,10 @@ const formattedReceivableBal = computed(() => {
 })
 
 const getWithholdingTaxAmount = (withholdingTax, projectCost) => {
-    if (!withholdingTax) return 0;
-    if (!isNaN(withholdingTax)) return parseFloat(withholdingTax);
+    if(!withholdingTax) return 0;
+    if(!isNaN(withholdingTax)) return parseFloat(withholdingTax);
     const match = /([\d.]+)\s*%/.exec(withholdingTax);
-    if (match) {
+    if(match){
         const percent = parseFloat(match[1]);
         return projectCost * (percent / 100);
     }
@@ -268,9 +272,9 @@ const getWithholdingTaxAmount = (withholdingTax, projectCost) => {
 
 const calculateTotals = () => {
     const parseAmount = (val) => {
-        if (val === null || val === undefined || val === '') return 0
-        if (typeof val === 'number') return val
-        // Remove commas and parse
+        if(val === null || val === undefined || val === '') return 0
+        if(typeof val === 'number') return val
+        //remove commas and parse
         return parseFloat(val.toString().replace(/,/g, '')) || 0
     }
 
@@ -287,8 +291,8 @@ const calculateTotals = () => {
     tempData.value.total = total 
     tempData.value.receivable_bal = receivableBal
 
-    // Set fully paid date if receivable is zero and not already set
-    if (receivableBal <= 0 && !tempData.value.fully_paid_date) {
+    //set fully paid date if receivable is zero and not already set
+    if(receivableBal <= 0 && !tempData.value.fully_paid_date){
         const dates = [
             tempData.value.first_date_of_collection,
             tempData.value.second_date_of_collection,
@@ -300,7 +304,7 @@ const calculateTotals = () => {
 }
 
 const formatCurrency = (value) => {
-    if (value === null || value === undefined || value === '') return '0.00'
+    if(value === null || value === undefined || value === '') return '0.00'
     
     //remove existing commas if present, then parse
     const num = typeof value === 'string' 
@@ -362,18 +366,18 @@ const openAddDialog = () => {
     dialog.value = true
 }
 
-// When editing, convert type_of_survey string to array
+//when editing, convert type_of_survey string to array
 const openEditDialog = (item) => {
     const formattedItem = { ...item }
     const currencyFields = ['project_cost', 'first_collection', 'second_collection', 'third_collection', 'fourth_collection', 'total', 'receivable_bal', 'withholding_tax']
     
     currencyFields.forEach(field => {
-        if (formattedItem[field] !== null && formattedItem[field] !== undefined && formattedItem[field] !== '') {
-            //parse the formatted string back to a number
-            const num = parseFloat(formattedItem[field].replace(/,/g, ''))
-            if (!isNaN(num)) {
-                //store the raw number, let the input handlers format it for display
-                formattedItem[field] = num.toString()
+        if(formattedItem[field] !== null && formattedItem[field] !== undefined && formattedItem[field] !== ''){
+            //parse the formatted string back to a number by removing commas first
+            const num = parseFloat(String(formattedItem[field]).replace(/,/g, ''))
+            if(!isNaN(num)){
+                //set the value as a string representation of the number without commas for the input field
+                formattedItem[field] = String(num)
             }
         }
     })
@@ -389,11 +393,11 @@ const openEditDialog = (item) => {
     isEditMode.value = true
     dialog.value = true
     
-    //calculate totals immediately when dialog opens
+    //recalculate totals immediately when dialog opens
     nextTick(() => {
         calculateTotals()
     })
-};
+}
 
 const handleSubmit = async () => {
     const to_update = { ...tempData.value }
@@ -494,39 +498,45 @@ watch(() => [
 )
 
 const handleCurrencyInput = (field) => {
-    //remove all non-numeric characters except decimal point
     let value = tempData.value[field]
-    if (typeof value === 'string') {
-        //remove commas and other non-numeric characters except decimal
-        value = value.replace(/[^\d.]/g, '')
-        
-        //ensure only one decimal point
-        const parts = value.split('.')
-        if (parts.length > 2) {
+    if(typeof value === 'string'){
+        //remove commas and any characters that are not digits or a decimal point
+        const cleanedValue = value.replace(/[^\d.]/g, '')
+        //ensure there's only one decimal point
+        const parts = cleanedValue.split('.')
+        if(parts.length > 2){
             value = parts[0] + '.' + parts.slice(1).join('')
         }
-        
+        else{
+            value = cleanedValue
+        }
+
+        //update the value in tempData
         tempData.value[field] = value
-    }
+    }  tempData.value[field] = value
     
-    //calculate totals after input
-    calculateTotals()
+    //recalculate totals after input
+    // calculateTotals()
 }
 
 const formatCurrencyField = (field) => {
     let value = tempData.value[field]
-    if (value && value !== '') {
-        //parse the numeric value
-        const num = parseFloat(value)
-        if (!isNaN(num)) {
-            //format with commas for display
+    if(value !== null && value !== undefined && value !== ''){
+        //first, remove any existing commas to get a clean number string
+        const cleanedValue = String(value).replace(/,/g, '')
+        //then, parse the cleaned string to a number
+        const num = parseFloat(cleanedValue)
+        if(!isNaN(num)){
+            //check if the number has a decimal part; if not, you might need to handle it differently
+            //but for now, the primary issue is the display logic.
+            //format the number for display with commas and two decimal places
             tempData.value[field] = num.toLocaleString('en-US', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
             })
         }
     }
-};
+}
 
 onMounted(() => {
     fetchSalesRevenueData()

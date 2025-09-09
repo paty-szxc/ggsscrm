@@ -51,7 +51,7 @@
                     <v-text-field 
                         class="mt-3"
                         hide-details
-                        label="Receipt No."
+                        label="PO#"
                         v-model="tempData.receipt_no">
                     </v-text-field>
                     <v-text-field 
@@ -88,6 +88,7 @@
                     </v-text-field>
                     <v-date-input 
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="1st Collection Date"
@@ -107,6 +108,7 @@
                     </v-text-field>
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="2nd Collection Date"
@@ -126,6 +128,7 @@
                     </v-text-field>
                     <v-date-input 
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="3rd Collection Date"
@@ -145,6 +148,7 @@
                     </v-text-field>
                     <v-date-input 
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="4th Collection Date"
@@ -198,6 +202,12 @@
                         variant="outlined"
                         v-model="tempData.fully_paid_date"
                     />
+                    <v-text-field 
+                        class="mt-3"
+                        hide-details
+                        label="Client VAT"
+                        v-model="tempData.withholding_tax">
+                    </v-text-field>
                 </div>
             </v-card-text>
             <v-card-actions>
@@ -211,7 +221,9 @@
                 <v-btn
                     color="green darken-1"
                     text
-                    @click="handleSubmit">
+                    @click="handleSubmit"
+                    :loading="isSubmitting"
+                    :disabled="isSubmitting">
                     Submit
                 </v-btn>
             </v-card-actions>
@@ -232,7 +244,7 @@ const headers = ref([
     { title: 'Client Name & Address', value: 'client_name_address', align: 'center' },
     { title: 'Particulars', value: 'particulars', align: 'center' },
     { title: 'Status of Vat', value: 'status_of_vat', align: 'center' },
-    { title: 'Receipt No.', value: 'receipt_no', align: 'center' },
+    { title: 'PO#', value: 'receipt_no', align: 'center' },
     { title: 'Project Cost', value: 'project_cost', align: 'center' },
     { title: 'Amount (Gross of VAT)', value: 'amount_gross_of_vat', align: 'center' },
     { title: 'Net of VAT', value: 'net_of_vat', align: 'center' },
@@ -282,6 +294,7 @@ const tempData = ref({})
 const dialog = ref(false)
 const isEditMode = ref(false)
 const snackbar = ref(null)
+const isSubmitting = ref(false)
 
 const formattedTotal = computed(() => formatCurrency(tempData.value.total))
 const formattedReceivableBal = computed(() => {
@@ -289,15 +302,56 @@ const formattedReceivableBal = computed(() => {
 })
 
 const getWithholdingTaxAmount = (withholdingTax, projectCost) => {
-    if(!withholdingTax) return 0;
-    if(!isNaN(withholdingTax)) return parseFloat(withholdingTax);
-    const match = /([\d.]+)\s*%/.exec(withholdingTax);
+    if(!withholdingTax) return 0
+    if(!isNaN(withholdingTax)) return parseFloat(withholdingTax)
+    const match = /([\d.]+)\s*%/.exec(withholdingTax)
     if(match){
-        const percent = parseFloat(match[1]);
-        return projectCost * (percent / 100);
+        const percent = parseFloat(match[1])
+        return projectCost * (percent / 100)
     }
-    return 0;
+    return 0
 };
+
+const handleCurrencyInput = (field) => {
+    let value = tempData.value[field]
+    if(typeof value === 'string'){
+        //remove commas and any characters that are not digits or a decimal point
+        const cleanedValue = value.replace(/[^\d.]/g, '')
+        //ensure there's only one decimal point
+        const parts = cleanedValue.split('.')
+        if(parts.length > 2){
+            value = parts[0] + '.' + parts.slice(1).join('')
+        }
+        else{
+            value = cleanedValue
+        }
+
+        //update the value in tempData
+        tempData.value[field] = value
+    }
+    
+    //recalculate totals after input
+    // calculateTotals()
+}
+
+const formatCurrencyField = (field) => {
+    let value = tempData.value[field]
+    if(value !== null && value !== undefined && value !== ''){
+        //first, remove any existing commas to get a clean number string
+        const cleanedValue = String(value).replace(/,/g, '')
+        //then, parse the cleaned string to a number
+        const num = parseFloat(cleanedValue)
+        if(!isNaN(num)){
+            //check if the number has a decimal part; if not, you might need to handle it differently
+            //but for now, the primary issue is the display logic.
+            //format the number for display with commas and two decimal places
+            tempData.value[field] = num.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            })
+        }
+    }
+}
 
 const calculateTotals = () => {
     const parseAmount = (val) => {
@@ -320,8 +374,8 @@ const calculateTotals = () => {
     tempData.value.total = total 
     tempData.value.receivable_bal = receivableBal
 
-    // Set fully paid date if receivable is zero and not already set
-    if (receivableBal <= 0 && !tempData.value.fully_paid_date) {
+    //set fully paid date if receivable is zero and not already set
+    if(receivableBal <= 0 && !tempData.value.fully_paid_date){
         const dates = [
             tempData.value.first_date_of_collection,
             tempData.value.second_date_of_collection,
@@ -333,7 +387,7 @@ const calculateTotals = () => {
 }
 
 const formatCurrency = (value) => {
-    if (value === null || value === undefined || value === '') return '0.00'
+    if(value === null || value === undefined || value === '') return '0.00'
     
     //remove existing commas if present, then parse
     const num = typeof value === 'string' 
@@ -348,33 +402,11 @@ const formatCurrency = (value) => {
         })
 }
 
-const surveyTypes = [
-    'Relocation Survey',
-    'Subdivision Survey',
-    'Topographic Survey',
-    'Hydrographic Survey',
-    'Verification Survey',
-    'Construction Survey',
-    'Lot Segregation Survey',
-    'Height Clearance Permit',
-    'Survey And Lot Plan Approval',
-    'As-Built Survey',
-    'Re-Survey',
-    'Consolidation Survey',
-    'Bathymetric',
-    'CAD Plotting',
-    'Titling Assistance',
-    'Land Consultancy',
-    'Right Of-Way Survey',
-    'Retainership'
-]
-
 //when opening add dialog, ensure type_of_survey is an array
 const openAddDialog = () => {
     tempData.value = {
         date_of_survey: null,
         location: '',
-        type_of_survey: [],
         receipt_no: '',
         project_cost: '',
         first_date_of_collection: '',
@@ -395,25 +427,35 @@ const openAddDialog = () => {
     dialog.value = true
 }
 
-// When editing, convert type_of_survey string to array
 const openEditDialog = (item) => {
-    const formattedItem = { ...item }
-    const currencyFields = ['project_cost', 'first_collection', 'second_collection', 'third_collection', 'fourth_collection', 'total', 'receivable_bal', 'withholding_tax']
+    const formattedItem = { ...item };
+    const currencyFields = [
+        'project_cost',
+        'first_collection',
+        'second_collection',
+        'third_collection',
+        'fourth_collection',
+        'total',
+        'receivable_bal',
+        'vat',
+        'amount_gross_of_vat',
+    ];
     
     currencyFields.forEach(field => {
-        if (formattedItem[field] !== null && formattedItem[field] !== undefined && formattedItem[field] !== '') {
-            //parse the formatted string back to a number
-            const num = parseFloat(formattedItem[field].replace(/,/g, ''))
-            if (!isNaN(num)) {
-                //store the raw number, let the input handlers format it for display
-                formattedItem[field] = num.toString()
+        if(formattedItem[field] !== null && formattedItem[field] !== undefined && formattedItem[field] !== ''){
+            //parse the formatted string back to a number by removing commas first
+            const num = parseFloat(String(formattedItem[field]).replace(/,/g, ''))
+            if(!isNaN(num)){
+                //set the value as a string representation of the number without commas for the input field
+                formattedItem[field] = String(num)
             }
         }
     })
 
-    if (formattedItem.type_of_survey && typeof formattedItem.type_of_survey === 'string') {
+    if(formattedItem.type_of_survey && typeof formattedItem.type_of_survey === 'string'){
         formattedItem.type_of_survey = formattedItem.type_of_survey.split('&').map(s => s.trim())
-    } else if (!formattedItem.type_of_survey) {
+    }
+    else if(!formattedItem.type_of_survey){
         formattedItem.type_of_survey = []
     }
     
@@ -421,13 +463,14 @@ const openEditDialog = (item) => {
     isEditMode.value = true
     dialog.value = true
     
-    //calculate totals immediately when dialog opens
+    //recalculate totals immediately when dialog opens
     nextTick(() => {
         calculateTotals()
     })
-};
+}
 
 const handleSubmit = async () => {
+    isSubmitting.value = true
     const to_update = { ...tempData.value }
 
     //function to parse currency values
@@ -483,6 +526,9 @@ const handleSubmit = async () => {
         console.error('Error saving sales revenue data:', error)
         alert('Error occurred while saving data')
     }
+    finally{
+        isSubmitting.value = false
+    }
 }
 
 const closeAddDialog = () => {
@@ -524,41 +570,6 @@ watch(() => [
     },
     { deep: true }
 )
-
-const handleCurrencyInput = (field) => {
-    //remove all non-numeric characters except decimal point
-    let value = tempData.value[field]
-    if (typeof value === 'string') {
-        //remove commas and other non-numeric characters except decimal
-        value = value.replace(/[^\d.]/g, '')
-        
-        //ensure only one decimal point
-        const parts = value.split('.')
-        if (parts.length > 2) {
-            value = parts[0] + '.' + parts.slice(1).join('')
-        }
-        
-        tempData.value[field] = value
-    }
-    
-    //calculate totals after input
-    calculateTotals()
-}
-
-const formatCurrencyField = (field) => {
-    let value = tempData.value[field]
-    if (value && value !== '') {
-        //parse the numeric value
-        const num = parseFloat(value)
-        if (!isNaN(num)) {
-            //format with commas for display
-            tempData.value[field] = num.toLocaleString('en-US', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 2
-            })
-        }
-    }
-};
 
 onMounted(() => {
     fetchConstructionSalesRevenue()

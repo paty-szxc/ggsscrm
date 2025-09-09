@@ -1,7 +1,7 @@
 <template>
     <v-container fluid>
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-            <h1 class="p-2 sm:p-4 font-sans sm:indent-8 text-xl sm:text-2xl">Survey Quotations</h1>
+            <h1 class="p-2 sm:p-4 font-sans sm:indent-8 text-xl sm:text-2xl">Construction Quotations</h1>
             <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
                 <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
                     <v-text-field
@@ -186,7 +186,7 @@
                             @click="submit"
                             color="green darken-1"
                             text>
-                            {{ isEditMode ? 'Update' : 'Submit'}}
+                            {{ isEditMode === 'add' ? 'Submit' : 'Update'}}
                         </v-btn>
                 </v-card-actions>
             </v-card>
@@ -245,7 +245,7 @@ const submit = async () => {
     formData.append('client', client.value)
     formData.append('location', location.value)
     const formattedDate = formatDateForBackend(date.value);
-    if (formattedDate) {
+    if(formattedDate){
         formData.append('date', formattedDate);
     }
 
@@ -272,14 +272,14 @@ const submit = async () => {
     try{
         let res
         if(isEditMode.value === 'add'){
-            res = await axios.post('insert_survey_quotation', formData, {
+            res = await axios.post('insert_construction_quotation', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
             })
         }
         else{
-            res = await axios.post(`update_survey_quotation/${editing.value.id}`, formData, {
+            res = await axios.post(`update_construction_quotation/${editing.value.id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'X-HTTP-Method-Override': 'PUT' //alternative to _method
@@ -289,12 +289,13 @@ const submit = async () => {
         if(res.data.success){
             if(isEditMode.value === 'add'){
                 snackbar.value.alertSuccess(res.data.message)
-            } else {
+            }
+            else{
                 snackbar.value.alertUpdate()
             }
             closeDialog()
-            // Refresh the data after successful operation
-            await fetchSurveyQuotations()
+            //refresh the data after successful operation
+            await fetchConstructionQuotations()
         }
         else{
             if(res.data.errors){
@@ -357,26 +358,30 @@ const openDialog = (mode, item = null) => {
 } //NOTE - end of open dialog
 
 
-const formatDateForBackend = (dateValue) => { //helper function to format date
-    if(!dateValue) return null;
-    
-    if(typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)){
-        return dateValue;
-    }
-    
-    const d = new Date(dateValue);
-    if(isNaN(d.getTime())) return null;
-    
-    return d.toISOString().split('T')[0];
-};
+const formatDateForBackend = (dateValue) => {
+    if(!dateValue) return null
+
+    //if the dateValue is already a Date object, use it directly
+    const d = dateValue instanceof Date ? dateValue : new Date(dateValue)
+
+    //check if the date is valid
+    if(isNaN(d.getTime())) return null
+
+    //use the local date components to avoid timezone shifts
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
+}
 
 const getFileNameVehicle = (url) => {
     return url.split('/').pop() || 'document.pdf'
 }
 
-const fetchSurveyQuotations = async () => {
+const fetchConstructionQuotations = async () => {
     try{
-        const res = await axios.get('get_quotations')
+        const res = await axios.get('get_construction_quotations')
         quotations.value = res.data.map(item => ({
             ...item
         }))
@@ -387,7 +392,7 @@ const fetchSurveyQuotations = async () => {
 }
 
 onMounted(() => {
-    fetchSurveyQuotations()
+    fetchConstructionQuotations()
 })
 </script>
 

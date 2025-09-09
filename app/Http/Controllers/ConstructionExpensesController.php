@@ -2,28 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\VoucherImport;
-use App\Imports\VouchersMultiSheetImport;
-use App\Models\Voucher;
+use App\Imports\ConstructionExpensesImport;
+use App\Imports\ConstructionExpensesMultiSheetImport;
+use App\Models\ConstructionExpenses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class VoucherController extends Controller
+class ConstructionExpensesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(){
-        $data = Voucher::orderBy('date', 'desc')->get();
+        $data = ConstructionExpenses::orderBy('date', 'desc')->get();
 
         $data->transform(function($item){
-            $item->employee_salary = number_format((float) $item->employee_salary, 2) !== '0.00' ? number_format((float) $item->employee_salary, 2) : '';
-            $item->employee_benefits = number_format((float) $item->employee_benefits, 2) !== '0.00' ? number_format((float) $item->employee_benefits, 2) : '';
+            // $item->employee_salary = number_format((float) $item->employee_salary, 2) !== '0.00' ? number_format((float) $item->employee_salary, 2) : '';
+            // $item->employee_benefits = number_format((float) $item->employee_benefits, 2) !== '0.00' ? number_format((float) $item->employee_benefits, 2) : '';
             $item->meals_office_survey = number_format((float) $item->meals_office_survey, 2) !== '0.00' ? number_format((float) $item->meals_office_survey, 2) : '';
-            $item->dog_food = number_format((float) $item->dog_food, 2) !== '0.00' ? number_format((float) $item->dog_food, 2) : '';
+            // $item->dog_food = number_format((float) $item->dog_food, 2) !== '0.00' ? number_format((float) $item->dog_food, 2) : '';
             $item->construction_survey_supplies = number_format((float) $item->construction_survey_supplies, 2) !== '0.00' ? number_format((float) $item->construction_survey_supplies, 2) : '';
             $item->repairs_maintenance = number_format((float) $item->repairs_maintenance, 2) !== '0.00' ? number_format((float) $item->repairs_maintenance, 2) : '';
             $item->office_supplies = number_format((float) $item->office_supplies, 2) !== '0.00' ? $item->office_supplies : '';
@@ -54,11 +51,11 @@ class VoucherController extends Controller
             $sheetCount = $spreadsheet->getSheetCount();
 
             if ($sheetCount > 1) {
-                // Multi-sheet import
-                Excel::import(new VouchersMultiSheetImport(), $file);
+                //multi-sheet import
+                Excel::import(new ConstructionExpensesMultiSheetImport(), $file);
             } else {
-                // Single-sheet import
-                Excel::import(new VoucherImport(), $file);
+                //single-sheet import
+                Excel::import(new ConstructionExpensesImport(), $file);
             }
 
             if($request->wantsJson()){
@@ -88,7 +85,7 @@ class VoucherController extends Controller
         };
         $data = $req->input('to_update', []);
         $data['date'] = $formatDate($data['date'] ?? null);
-        $voucher = Voucher::create($data);
+        $voucher = ConstructionExpenses::create($data);
         return response()->json(['success' => true, 'voucher' => $voucher]);
     }
 
@@ -101,7 +98,7 @@ class VoucherController extends Controller
         if (!$id) {
             return response()->json(['success' => false, 'message' => 'ID is required for update'], 400);
         }
-        $voucher = Voucher::find($id);
+        $voucher = ConstructionExpenses::find($id);
         if (!$voucher) {
             return response()->json(['success' => false, 'message' => 'Voucher not found'], 404);
         }
@@ -112,13 +109,10 @@ class VoucherController extends Controller
 
     public function monthlyExpenses(){
         $currentYear = date('Y');
-        $results = DB::table('vouchers')
+        $results = DB::table('construction_expenses')
             ->select(
                 DB::raw("DATE_FORMAT(date, '%b') as month"),
-                DB::raw('SUM(COALESCE(employee_salary, 0)) as salary'),
-                DB::raw('SUM(COALESCE(employee_benefits, 0)) as benefits'),
                 DB::raw('SUM(COALESCE(meals_office_survey, 0)) as meals'),
-                DB::raw('SUM(COALESCE(dog_food, 0)) as dog_food'),
                 DB::raw('SUM(COALESCE(construction_survey_supplies, 0)) as construction'),
                 DB::raw('SUM(COALESCE(repairs_maintenance, 0)) as repairs'),
                 DB::raw('SUM(COALESCE(office_supplies, 0)) as office'),
@@ -130,10 +124,7 @@ class VoucherController extends Controller
                 DB::raw('SUM(COALESCE(transportation, 0)) as transpo'),
                 DB::raw('SUM(COALESCE(budget, 0)) as budget'),
                 DB::raw('SUM(
-                    COALESCE(employee_salary, 0) + 
-                    COALESCE(employee_benefits, 0) + 
-                    COALESCE(meals_office_survey, 0) + 
-                    COALESCE(dog_food, 0) + 
+                    COALESCE(meals_office_survey, 0) +
                     COALESCE(construction_survey_supplies, 0) + 
                     COALESCE(repairs_maintenance, 0) + 
                     COALESCE(office_supplies, 0) + 
@@ -158,10 +149,7 @@ class VoucherController extends Controller
             return [
                 'month' => $month,
                 'categories' => [
-                    'salary' => $found ? $found->salary : 0,
-                    'benefits' => $found ? $found->benefits : 0,
                     'meals' => $found ? $found->meals : 0,
-                    'dog_food' => $found ? $found->dog_food : 0,
                     'construction' => $found ? $found->construction : 0,
                     'repairs' => $found ? $found->repairs : 0,
                     'office' => $found ? $found->office : 0,
@@ -186,9 +174,9 @@ class VoucherController extends Controller
         Log::info('YearlyExpenses called for year: ' . $currentYear);
         
         //check if there are any vouchers in the database
-        $totalVouchers = DB::table('vouchers')->count();
-        $vouchersWithDates = DB::table('vouchers')->whereNotNull('date')->count();
-        $vouchersThisYear = DB::table('vouchers')->whereYear('date', $currentYear)->count();
+        $totalVouchers = DB::table('construction_expenses')->count();
+        $vouchersWithDates = DB::table('construction_expenses')->whereNotNull('date')->count();
+        $vouchersThisYear = DB::table('construction_expenses')->whereYear('date', $currentYear)->count();
         
         Log::info('Voucher counts:', [
             'total' => $totalVouchers,
@@ -196,12 +184,9 @@ class VoucherController extends Controller
             'this_year' => $vouchersThisYear
         ]);
         
-        $result = DB::table('vouchers')
+        $result = DB::table('construction_expenses')
             ->select(
-                DB::raw('SUM(COALESCE(employee_salary, 0)) as salary'),
-                DB::raw('SUM(COALESCE(employee_benefits, 0)) as benefits'),
                 DB::raw('SUM(COALESCE(meals_office_survey, 0)) as meals'),
-                DB::raw('SUM(COALESCE(dog_food, 0)) as dog_food'),
                 DB::raw('SUM(COALESCE(construction_survey_supplies, 0)) as construction'),
                 DB::raw('SUM(COALESCE(repairs_maintenance, 0)) as repairs'),
                 DB::raw('SUM(COALESCE(office_supplies, 0)) as office'),
@@ -213,10 +198,7 @@ class VoucherController extends Controller
                 DB::raw('SUM(COALESCE(transportation, 0)) as transpo'),
                 DB::raw('SUM(COALESCE(budget, 0)) as budget'),
                 DB::raw('SUM(
-                    COALESCE(employee_salary, 0) + 
-                    COALESCE(employee_benefits, 0) + 
-                    COALESCE(meals_office_survey, 0) + 
-                    COALESCE(dog_food, 0) + 
+                    COALESCE(meals_office_survey, 0) +
                     COALESCE(construction_survey_supplies, 0) + 
                     COALESCE(repairs_maintenance, 0) + 
                     COALESCE(office_supplies, 0) + 
@@ -237,10 +219,7 @@ class VoucherController extends Controller
         return response()->json([
             'year' => $currentYear,
             'categories' => [
-                'salary' => $result->salary ?? 0,
-                'benefits' => $result->benefits ?? 0,
                 'meals' => $result->meals ?? 0,
-                'dog_food' => $result->dog_food ?? 0,
                 'construction' => $result->construction ?? 0,
                 'repairs' => $result->repairs ?? 0,
                 'office' => $result->office ?? 0,

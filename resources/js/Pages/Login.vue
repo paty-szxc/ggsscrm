@@ -16,14 +16,18 @@
                                         density="compact"
                                         label="Username"
                                         variant="outlined"
+                                        :rules="loginUsernameRules"
                                         v-model="newUser.username">
                                     </v-text-field>
                                     <v-text-field
+                                        :append-inner-icon="showLoginPassword ? 'mdi-eye-off' : 'mdi-eye'"
                                         class="w-full"
+                                        @click:append-inner="showLoginPassword = !showLoginPassword"
                                         density="compact"
                                         label="Password"
-                                        type="password"
+                                        :type="showLoginPassword ? 'text' : 'password'"
                                         variant="outlined"
+                                        :rules="loginPasswordRules"
                                         v-model="newUser.password">
                                     </v-text-field>
                                     <div class="flex justify-between items-center">
@@ -157,6 +161,7 @@ const loginForm = ref(null)
 const registerForm = ref(null)
 const newUser = ref({})
 const showPassword = ref(false)
+const showLoginPassword = ref(false)
 const showConfirmPass = ref(false)
 const roles = ['Admin', 'Encoder', 'Viewer', 'Encoder & Viewer', 'Checker']
 const snackbar = ref(null)
@@ -175,31 +180,86 @@ const passwordRules = [
     (v) => (v && v.length >= 8) || 'Password must be at least 8 characters',
 ]
 
+const loginUsernameRules = [
+    (v) => !!v || 'Username is required.'
+]
+
+const loginPasswordRules = [
+    (v) => !!v || 'Password is required.'
+]
+
 const confirmPassRules = computed(() => [
     (v) => !!v || 'Please confirm your password.',
     (v) => v === newUser.value.password || 'Passwords do not match',
 ])
 
+// const loginBtn = async () => {
+//     loading.value = true
+//     const { valid } = await loginForm.value.validate()
+
+//     if(!valid){
+//         loading.value = false
+//         snackbar.value.alertCustom('Please enter username and password.', 'warning')
+//         return
+//     }
+
+//     try{
+//         await axios.get('/sanctum/csrf-cookie')
+//         const res = await axios.post('login', newUser.value)
+//         console.log(res)
+//         newUser.value = {}
+//         window.location.href = '/' //full page reload
+//     }
+//     catch(err){
+//         let message = 'Login failed. Please try again.'
+//         const status = err.response?.status
+//         if(status === 401 || status === 422){
+//             message = 'Incorrect username or password.'
+//         }else if (err.response?.data?.message){
+//             message = err.response.data.message
+//         }
+//         snackbar.value.alertCustom(message, 'error')
+//         console.error('Login failed:', err)
+//     }
+//     finally{
+//         loading.value = false
+//     }
+// }
 const loginBtn = async () => {
     loading.value = true
     const { valid } = await loginForm.value.validate()
 
-    if (!valid) {
+    if(!valid){
         loading.value = false
+        snackbar.value.alertCustom('Please enter username and password.', 'warning')
         return
     }
 
-    try {
+    try{
         await axios.get('/sanctum/csrf-cookie')
         const res = await axios.post('login', newUser.value)
+        
         console.log(res)
         newUser.value = {}
-        window.location.href = '/' // Full page reload
-        // OR for SPA behavior:
-        // router.visit('/')
-    } catch (err) {
+        window.location.href = '/'
+    }
+    catch(err){
+        let message = 'Login failed. Please try again.'
+        const status = err.response?.status
+        const errors = err.response?.data?.errors;
+
+        if(status === 422 && errors){
+            //if the server returns validation errors, display the first one
+            message = Object.values(errors)[0][0]; 
+        }
+        else if(err.response?.data?.message){
+            message = err.response.data.message
+        }
+        
+        snackbar.value.alertCustom(message, 'error')
         console.error('Login failed:', err)
-    } finally {
+    }
+    finally{
         loading.value = false
     }
 }
@@ -215,7 +275,6 @@ const registerBtn = async () => {
 
     try{
         await axios.get('sanctum/csrf-cookie')
-        
         const payload = {
             emp_code: newUser.value.emp_code,
             first_name: newUser.value.first_name,
@@ -228,14 +287,14 @@ const registerBtn = async () => {
 
         const response = await axios.post('register', payload)
         
-        if (response.data.message) {
+        if(response.data.message){
             snackbar.value.alertCustom('Registration Successful!')
             newUser.value = {}
         }
     }
     catch(err){
         let errorMessage = 'Error registering user';
-        if (err.response?.data?.errors){
+        if(err.response?.data?.errors){
             errorMessage = Object.values(err.response.data.errors)
             .flat()
             .join(' ')

@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- date range filter -->
-        <div class="p-4 bg-white rounded-lg shadow-md mb-4">
+        <div class="p-4 bg-white rounded-lg mb-4">
             <h3 class="text-lg font-semibold mb-3">Weekly Expenses Filter</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <v-date-input
@@ -32,13 +32,13 @@
                         class="mr-2">
                         Clear Filter
                     </v-btn>
-                    <!-- <v-btn
+                    <v-btn
                         @click="exportWeeklyReport"
                         color="primary"
                         variant="flat"
                     >
                         Export Report
-                    </v-btn> -->
+                    </v-btn>
                 </div>
             </div>
             
@@ -161,7 +161,7 @@
                     <div class="bg-white p-3 rounded border shadow-sm flex flex-col justify-center items-center">
                         <div class="text-center">
                             <div class="font-medium text-gray-600 mb-2">Total Expenses</div>
-                            <div class="text-2xl font-bold text-red-600">₱{{ formatCurrency(weeklyTotals.total) }}</div>
+                            <div class="text-2xl font-bold text-blue-600">₱{{ formatCurrency(weeklyTotals.total) }}</div>
                         </div>
                     </div>
                 </div>
@@ -171,6 +171,9 @@
         <ExpensesTable
             :voucher_headers="voucherHeaders"
             :vouchers="filteredVouchersData"
+            expensesType="Survey"
+            importUrl="/import_vouchers_data"
+            :expandedColumns="expandedColumns"
             @refresh-data="fetchVouchers"
             @open-dialog="openAddDialog"
             @edit-data="openEditDialog"
@@ -398,7 +401,24 @@ const dialog = ref(false)
 const isEditMode = ref(false)
 const snackbar = ref(null)
 
-// Date range filtering
+//expanded columns for survey vouchers expanded row
+const expandedColumns = ref([
+    { title: 'Office Supplies', key: 'office_supplies' },
+    { title: 'Gasoline & Oil', key: 'gasoline_oil' },
+    { title: 'Utilities (Electricty, Water, Internet, Assoc Dues)', key: 'utilities' },
+    { title: 'Parking Fee', key: 'parking_fee' },
+    { title: 'Toll Fee', key: 'toll_fee' },
+    { title: 'Permits, Certification, & Tax', key: 'permits_certification_tax' },
+    { title: 'Transportation', key: 'transportation' },
+    { title: 'Budget (Survey/Outside Office)/Commission or SOP', key: 'budget' },
+    { title: 'Representation Expense (Personal - Sir Pete)', key: 'representation_expense_personal' },
+    { title: 'OTHERS (Staff - Personal)', key: 'others_staff_personal' },
+    { title: 'AMOUNT (GROSS OF VAT)', key: 'amount_gross_of_vat' },
+    { title: 'NET VAT', key: 'net_of_vat' },
+    { title: 'VAT', key: 'vat' },
+])
+
+//date range filtering
 const dateRange = ref({
     startDate: null,
     endDate: null
@@ -493,9 +513,9 @@ const fetchVouchers = async () => {
     }
 }
 
-// Date range filtering functions
+//date range filtering functions
 const filterByDateRange = () => {
-    if (!dateRange.value.startDate || !dateRange.value.endDate) {
+    if(!dateRange.value.startDate || !dateRange.value.endDate){
         filteredVouchersData.value = vouchersData.value
         weeklyTotals.value = null
         return
@@ -517,7 +537,7 @@ const filterByDateRange = () => {
 }
 
 const calculateWeeklyTotals = () => {
-    if (filteredVouchersData.value.length === 0) {
+    if(filteredVouchersData.value.length === 0){
         weeklyTotals.value = null
         return
     }
@@ -571,7 +591,7 @@ const calculateWeeklyTotals = () => {
         totals.vat += parseValue(voucher.vat)
     })
 
-    // Calculate total
+    //calculate total
     totals.total = Object.keys(totals).reduce((sum, key) => {
         if (key !== 'total') {
             return sum + totals[key]
@@ -590,7 +610,7 @@ const clearDateFilter = () => {
 }
 
 const formatDate = (date) => {
-    if (!date) return ''
+    if(!date) return ''
     return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -599,7 +619,7 @@ const formatDate = (date) => {
 }
 
 const formatCurrency = (amount) => {
-    if (amount === null || amount === undefined) return '0.00'
+    if(amount === null || amount === undefined) return '0.00'
     return parseFloat(amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -607,12 +627,12 @@ const formatCurrency = (amount) => {
 }
 
 const exportWeeklyReport = () => {
-    if (!weeklyTotals.value) {
+    if(!weeklyTotals.value){
         alert('Please select a date range first')
         return
     }
 
-    // Create CSV content
+    //create CSV content
     const headers = [
         'Category',
         'Amount (₱)'

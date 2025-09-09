@@ -34,27 +34,28 @@ class SalesRevenueController extends Controller
         $sales_revenue = SalesRevenue::orderBy('date_of_survey', 'desc')->get();
 
         $sales_revenue->transform(function($item){
-            // Parse project cost
+            //parse project cost
             $projectCost = floatval(str_replace(',', '', $item->project_cost));
-            // Calculate withholding tax amount
+            //calculate withholding tax amount
             $withholdingTaxAmount = 0;
-            if (preg_match('/([\d.]+)\s*%/', $item->withholding_tax, $matches)) {
+            if(preg_match('/([\d.]+)\s*%/', $item->withholding_tax, $matches)){
                 $percent = floatval($matches[1]);
                 $withholdingTaxAmount = $projectCost * ($percent / 100);
-            } elseif (is_numeric($item->withholding_tax)) {
+            }
+            elseif(is_numeric($item->withholding_tax)){
                 $withholdingTaxAmount = floatval($item->withholding_tax);
             }
-            // Calculate total collections
+            //calculate total collections
             $total = 0;
             foreach (['first_collection', 'second_collection', 'third_collection', 'fourth_collection'] as $field) {
                 $total += floatval(str_replace(',', '', $item->$field));
             }
-            // Calculate receivable balance
+            //calculate receivable balance
             $receivableBal = $projectCost - ($total + $withholdingTaxAmount);
             if ($receivableBal < 0) $receivableBal = 0;
             $item->receivable_bal = number_format($receivableBal, 2);
 
-            // Set fully paid date if receivable is zero or less
+            //set fully paid date if receivable is zero or less
             if ($receivableBal <= 0) {
                 $dates = array_filter([
                     $item->first_date_of_collection,

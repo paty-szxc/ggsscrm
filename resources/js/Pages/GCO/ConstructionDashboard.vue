@@ -1,20 +1,48 @@
 <template>
-    <div class="grid grid-cols-2 gap-8 pl-5 pt-2">
-        <div>
-            <MonthlyChart :barChart="barChart" :barOptions="barOptions"/>
+    <div class="dashboard-container">
+        <!-- first row with monthly charts -->
+        <div class="grid grid-cols-2 gap-8 pl-5 pt-2">
+            <div>
+                <MonthlyChart :barChart="barChart" :barOptions="barOptions"/>
+            </div>
+            <div>
+                <ExpensesChart :expensesChart="expensesChart" :expOptions="expOptions"/>
+            </div>
         </div>
-        <div>
-            <ExpensesChart :expensesChart="expensesChart" :expOptions="expOptions"></ExpensesChart>
+
+        <!-- second row with summary and yearly chart -->
+        <div class="grid grid-cols-2 gap-8 pl-5 pt-2"> <!-- added pt-8 for vertical spacing -->
+            <div>
+                <SummaryChart 
+                    :salesDataChart="summarySalesData"
+                    :expDataChart="summaryExpensesData"
+                    :salesDataOptions="summaryOptions"
+                    :expDataOptions="summaryOptions"
+                />
+            </div>
+            <div>
+                <YearlyChart 
+                    :salesUrl="'/construction_yearly_sales'"
+                    :expensesUrl="'/construction_yearly_expenses'"
+                    title="Yearly Project Sales vs Expenses"
+                    labelSales="Project Sales"
+                    labelExpenses="Expenses"
+                    :manualDataOverride="{}"
+                />
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import MonthlyChart from '../../Components/MonthlyChart.vue'
+import MonthlyChart from '../../Components/MonthlyChart.vue';
 import ExpensesChart from '../../Components/ExpensesChart.vue';
-import { ref, onMounted } from 'vue'
+import SummaryChart from '../../Components/SummaryChart.vue';
+import YearlyChart from '../../Components/YearlyChart.vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
+const currentYear = new Date().getFullYear()
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const colors = [
     'rgba(128, 174, 221, 0.7)', 'rgba(219, 112, 147, 0.7)', 'rgba(152, 251, 152, 0.7)',
@@ -72,22 +100,82 @@ const createChartOptions = (title) => ({
     }
 });
 
-const expensesChart = ref(createChartData('Expenses', Array(12).fill(0)));
-const expOptions = createChartOptions('Monthly Expenses');
+const summarySalesData = ref({
+    labels: months,
+    datasets: [{
+        label: 'Sales',
+        data: Array(12).fill(0),
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+    }]
+})
 
-const barChart = ref(createChartData('Project Cost', Array(12).fill(0)));
-const barOptions = createChartOptions('Monthly Project Sales');
+const summaryExpensesData = ref({
+    labels: months,
+    datasets: [{
+        label: 'Expenses',
+        data: Array(12).fill(0),
+        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+    }]
+})
+
+const summaryOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'top',
+        },
+        title: {
+            display: true,
+            text: `${currentYear} Sales vs Expenses Summary`,
+            font: { size: 16 }
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    let value = context.parsed && typeof context.parsed.y === 'number' ? context.parsed.y : context.raw;
+                    let numericValue = Number(value);
+                    return isNaN(numericValue) ? 'Invalid value' : `${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+            }
+        }
+    },
+    scales: {
+        y: {
+            beginAtZero: true,
+            stacked: true,
+            ticks: {
+                callback: function(value) {
+                    return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+            }
+        },
+        x: {
+            stacked: true
+        }
+    }
+};
+
+const expensesChart = ref(createChartData('Expenses', Array(12).fill(0)))
+const expOptions = createChartOptions(`${currentYear} Monthly Expenses`)
+
+const barChart = ref(createChartData('Project Cost', Array(12).fill(0)))
+const barOptions = createChartOptions(`${currentYear} Monthly Project Sales`)
 
 const fetchMonthlyCosts = async () => {
     try{
-        const res = await axios.get('/construction_monthly_totals');
-        const monthlyData = await res.data;
-        barChart.value.datasets[0].data = monthlyData.map(item => item.total_cost);
+        const res = await axios.get('/construction_monthly_totals')
+        const monthlyData = await res.data
+        barChart.value.datasets[0].data = monthlyData.map(item => item.total_cost)
 
-        summarySalesData.value.datasets[0].data = monthlyData.map(item => item.total_cost);
+        summarySalesData.value.datasets[0].data = monthlyData.map(item => item.total_cost)
     } 
     catch(error){
-        console.error('Error fetching monthly costs:', error);
+        console.error('Error fetching monthly costs:', error)
     }
 }
 
@@ -97,7 +185,7 @@ const fetchMonthlyExpenses = async () => {
         const monthlyExpenses = await res.data
         expensesChart.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total)
 
-        summaryExpensesData.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total);
+        summaryExpensesData.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total)
     }
     catch(error){
         console.error('Error fetching Monthly Expenses', error)
@@ -105,7 +193,15 @@ const fetchMonthlyExpenses = async () => {
 }
 
 onMounted(() => {
-    fetchMonthlyCosts();
-    fetchMonthlyExpenses();
+    fetchMonthlyCosts()
+    fetchMonthlyExpenses()
 });
 </script>
+
+<style scoped>
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; /* Adds consistent spacing between rows */
+}
+</style>

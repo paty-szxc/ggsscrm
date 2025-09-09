@@ -126,7 +126,8 @@ const backButtonLink = computed(() => {
     else if(currentPath.startsWith('/construction_dashboard') ||
         currentPath.startsWith('/construction_monitoring') ||
         currentPath.startsWith('/construction_revenue') ||
-        currentPath.startsWith('/construction_expenses')
+        currentPath.startsWith('/construction_expenses')  ||
+        currentPath.startsWith('/construction_quotation')
     ){
         return '/gco'
     }
@@ -173,6 +174,7 @@ const headerTitle = computed(() => {
         '/construction_monitoring',
         '/construction_revenue',
         '/construction_expenses',
+        '/construction_quotation',
     ]
     if (url === '/ggss' || ggssRoutes.includes(url)) {
         return 'Geopete Geodetic Surveying Services'

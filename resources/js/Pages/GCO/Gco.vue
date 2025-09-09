@@ -64,17 +64,17 @@
                 </div>
             </template>
         </a>
-        <a :href="userIsAdmin ? '/quotation' : null" 
-            :class="{'cursor-pointer flex flex-col items-center': true, 'cursor-not-allowed opacity-50': !userIsAdmin}">
+        <a :href="(userIsAdmin || userIsViewer) ? '/construction_quotation' : null" 
+            :class="{'cursor-pointer flex flex-col items-center': true, 'cursor-not-allowed opacity-50': !(userIsAdmin || userIsViewer)}">
             <v-tooltip
-                v-if="!userIsAdmin"
+                v-if="!(userIsAdmin || userIsViewer)"
                 text="Access restricted to authorized users only."
                 location="bottom">
                 <template v-slot:activator="{ props }">
                     <div v-bind="props">
                         <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
                             <img src="/public/images/quote.png" alt="Quotations" 
-                            :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                            :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': (userIsAdmin || userIsViewer), 'opacity-50': !(userIsAdmin || userIsViewer)}">
                         </div>
                         <div class="m-4 font-semibold text-center">
                             <span>Quotations</span>
@@ -82,7 +82,7 @@
                     </div>
                 </template>
             </v-tooltip>
-            <template v-if="userIsAdmin">
+            <template v-if="userIsAdmin || userIsViewer">
                 <div class="w-64 h-64 rounded-lg flex items-center justify-center bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none">
                 <img src="/public/images/quote.png" alt="Quotations" 
                     :class="{'h-60 shadow-xl/30 -inset-2 rounded-lg object-contain': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
@@ -149,7 +149,20 @@ import { usePage } from '@inertiajs/vue3';
 const userIsAdmin = computed(() => {
     const userRole = usePage().props.auth?.user?.role;
     console.log('User  data:', userRole);
-    return ['Admin', 'Encoder & Viewer',].includes(userRole);
+    return ['Admin'].includes(userRole);
 });
+
+const userIsViewer = computed(() => {
+    const authUser = usePage().props.auth?.user
+    //return false if authUser is null/undefined, indicating data isn't loaded yet
+    if(!authUser) return false
+
+    const userRole = authUser.role
+    const userEmpCode = authUser.emp_code
+    const allowedViewerEmpCodes = ['0000-0003', '0000-0005']
+    console.log('Emp Code:', userEmpCode);
+    
+    return ['Encoder & Viewer'].includes(userRole) && allowedViewerEmpCodes.includes(userEmpCode)
+})
 
 </script>
