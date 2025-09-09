@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\ConstructionExpensesController;
 use App\Http\Controllers\ConstructionProjectsController;
+use App\Http\Controllers\ConstructionQuotationController;
 use App\Http\Controllers\ConstructionSalesRevenueController;
 use App\Http\Controllers\OfficeSuppliesController;
 use App\Http\Controllers\QuotationsController;
@@ -116,6 +118,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //GOVT RELATED
     Route::get('get_survey_govt_related_data', [SurveyGovernmentRelatedController::class, 'index']);
+    Route::get('get_current_user_for_govt', [SurveyGovernmentRelatedController::class, 'getCurrentUser']);
     Route::post('insert_survey_govt_related_data', [SurveyGovernmentRelatedController::class, 'insert']);
     Route::post('update_survey_govt_related_data', [SurveyGovernmentRelatedController::class, 'update']);
 
@@ -125,18 +128,34 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::inertia('/construction_monitoring', 'GCO/ConstructionMonitoring');
         Route::inertia('/construction_revenue', 'GCO/ConstructionSales');
         Route::inertia('/construction_expenses', 'GCO/ConstructionExpenses');
+        Route::inertia('/construction_quotation', 'GCO/ConstructionQuotation');
     });
 
+    //CONSTRUCTION PROJECT
     Route::get('get_construction_project_data', [ConstructionProjectsController::class, 'index']);
     Route::get('get_current_user', [ConstructionProjectsController::class, 'getCurrentUser']);
     Route::post('import_construction_projects_data', [ConstructionProjectsController::class, 'import']);
     Route::post('insert_construction_project_data', [ConstructionProjectsController::class, 'insert']);
     Route::post('update_construction_project_data', [ConstructionProjectsController::class, 'update']);
+    
+    //CONSTRUCTION SALES & REVENUE
     Route::get('get_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'index']);
     Route::post('import_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'import']);
     Route::post('insert_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'insert']);
     Route::post('update_construction_sales_revenue', [ConstructionSalesRevenueController::class, 'update']);
     Route::get('construction_monthly_totals', [ConstructionSalesRevenueController::class, 'monthlyCosts']);
+    Route::get('construction_yearly_sales', [ConstructionSalesRevenueController::class, 'yearlySales']);
+    
+    //CONSTRUCTION QUOTATIONS
+    Route::get('get_construction_quotations', [ConstructionQuotationController::class, 'index']);
+    Route::post('insert_construction_quotation', [ConstructionQuotationController::class, 'insert']);
+    Route::put('update_construction_quotation/{id}', [ConstructionQuotationController::class, 'update']);
 
-    Route::get('construction_monthly_expenses', [ConstructionSalesRevenueController::class, 'monthlyExpenses']);
+    //CONSTRUCTION EXPENSES
+    Route::get('get_construction_vouchers', [ConstructionExpensesController::class, 'index']);
+    Route::post('import_construction_vouchers_data', [ConstructionExpensesController::class, 'import']);
+    Route::post('insert_construction_vouchers_data', [ConstructionExpensesController::class, 'insert']);
+    Route::post('update_construction_vouchers_data', [ConstructionExpensesController::class, 'update']);
+    Route::get('construction_monthly_expenses', [ConstructionExpensesController::class, 'monthlyExpenses']);
+    Route::get('construction_yearly_expenses', [ConstructionExpensesController::class, 'yearlyExpenses']);
 });  
