@@ -8,57 +8,57 @@
             <div class="flex-1 bg-white rounded-lg shadow p-4">
                 <h2 class="text-lg font-semibold mb-2">House & Lot</h2>
                 <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
-                <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
-                    <v-text-field
-                        clearable
-                        hide-details
-                        label="Search"
-                        density="compact"
-                        prepend-inner-icon="mdi-magnify"
-                        v-model="searchHaL">
-                    </v-text-field>
+                    <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
+                        <v-text-field
+                            clearable
+                            hide-details
+                            label="Search"
+                            density="compact"
+                            prepend-inner-icon="mdi-magnify"
+                            v-model="searchHaL">
+                        </v-text-field>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <!-- <v-tooltip location="bottom">
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    @click="openHaLDialog('add')"
+                                    color="info"
+                                    icon
+                                    size="small"
+                                    v-bind="props">
+                                    <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Add</span>
+                        </v-tooltip> -->
+                        <v-tooltip location="bottom" v-if="userCanEditOrAdd">
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    @click="openHaLDialog('add')"
+                                    color="info"
+                                    icon
+                                    size="small"
+                                    v-bind="props">
+                                    <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Add</span>
+                        </v-tooltip>
+                        <v-tooltip location="bottom" v-else>
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    color="grey"
+                                    icon
+                                    size="small"
+                                    v-bind="props"
+                                    style="cursor: not-allowed;"> <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Restricted: Only Admins can add.</span>
+                        </v-tooltip>
+                    </div>
                 </div>
-                <div class="flex-shrink-0">
-                    <!-- <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn
-                                @click="openHaLDialog('add')"
-                                color="info"
-                                icon
-                                size="small"
-                                v-bind="props">
-                                <v-icon>mdi-plus</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Add</span>
-                    </v-tooltip> -->
-                    <v-tooltip location="bottom" v-if="userCanEditOrAdd">
-                        <template v-slot:activator="{ props }">
-                            <v-btn
-                                @click="openHaLDialog('add')"
-                                color="info"
-                                icon
-                                size="small"
-                                v-bind="props">
-                                <v-icon>mdi-plus</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Add</span>
-                    </v-tooltip>
-                    <v-tooltip location="bottom" v-else>
-                        <template v-slot:activator="{ props }">
-                            <v-btn
-                                color="grey"
-                                icon
-                                size="small"
-                                v-bind="props"
-                                style="cursor: not-allowed;"> <v-icon>mdi-plus</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Restricted: Only Admins can add.</span>
-                    </v-tooltip>
-                </div>
-            </div>
                 <div class="overflow-x-auto">
                     <v-data-table
                         :headers="houseHeaders"

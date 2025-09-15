@@ -1,6 +1,6 @@
 <template>
     <div>
-        <header v-if="!isLoginPage" class="bg-gradient-to-b from-green-500 to-blue-500 text-white p-4 flex items-center justify-between">
+        <header v-if="!isLoginPage" class="bg-gradient-to-b from-green-500 to-blue-500 text-white p-2 sm:p-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <!-- Back button - shows when NOT on home page or login page -->
                 <nav v-if="showBackButton" class="flex">
@@ -12,7 +12,7 @@
                         </template>
                     </v-tooltip>
                 </nav>
-                <h1 class="font-medium text-xl">{{ headerTitle }}</h1>
+                <h1 class="font-medium text-lg sm:text-xl">{{ headerTitle }}</h1>
             </div>
 
             <div class="flex items-center space-x-4">
@@ -36,11 +36,11 @@
         </header>
 
         <main>
-            <div v-if="showImages" class="justify-center grid lg:grid-flow-col grid-rows-1 gap-12 px-16 md:py-16">
+            <div v-if="showImages" class="justify-center grid grid-cols-1 sm:grid-cols-2 lg:grid-flow-col grid-rows-1 gap-4 sm:gap-8 lg:gap-12 px-4 sm:px-8 lg:px-16 md:py-16">
                 <a :href="userIsAdmin ? '/dashboard' : null" 
                     :class="{'block cursor-pointer': true, 'disabled-link': !userIsAdmin}">
                         <img src="/public/images/dashboard.png" alt="Dashboard" 
-                            :class="{'h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                            :class="{'h-48 sm:h-56 lg:h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
                         <div class="m-4 text-center font-semibold">
                         <span>Dashboard</span>
                     </div>
@@ -54,7 +54,7 @@
                 <a :href="userIsAdmin ? '/sales_and_revenue' : null" 
                     :class="{'block cursor-pointer': true, 'disabled-link': !userIsAdmin}">
                         <img src="/public/images/revenue.png" alt="Sales & Revenue" 
-                            :class="{'h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                            :class="{'h-48 sm:h-56 lg:h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
                     <div class="m-4 text-center font-semibold">
                         <span>Sales & Revenue</span>
                     </div>
@@ -62,7 +62,7 @@
                 <a :href="userIsAdmin ? '/quotation' : null" 
                     :class="{'block cursor-pointer': true, 'disabled-link': !userIsAdmin}">
                         <img src="/public/images/quotation.png" alt="Quotations" 
-                            :class="{'h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                            :class="{'h-48 sm:h-56 lg:h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
                     <div class="m-4 text-center font-semibold">
                         <span>Quotations</span>
                     </div>
@@ -70,7 +70,7 @@
                 <a :href="userIsAdmin ? '/expenses' : null" 
                     :class="{'block cursor-pointer': true, 'disabled-link': !userIsAdmin}">
                         <img src="/public/images/salary.png" alt="Expenses" 
-                            :class="{'h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                            :class="{'h-48 sm:h-56 lg:h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
                     <div class="m-4 text-center font-semibold">
                         <span>Expenses</span>
                     </div>
@@ -78,7 +78,7 @@
                 <a :href="userIsAdmin ? '/govt_external' : null" 
                     :class="{'block cursor-pointer': true, 'disabled-link': !userIsAdmin}">
                         <img src="/public/images/government.png" alt="Government Related" 
-                            :class="{'h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
+                            :class="{'h-48 sm:h-56 lg:h-64 shadow-xl/30 -inset-2 rounded-lg bg-gradient-to-r from-blue-600 via-green-600 to-blue-600 transform transition hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:transform-none': true, 'opacity-75': userIsAdmin, 'opacity-50': !userIsAdmin}">
                     <div class="m-4 text-center font-semibold">
                         <span>Government Related (External Affairs)</span>
                     </div>

@@ -103,6 +103,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('get_survey_equipments', [SurveyEquipmentsController::class, 'index']);
     Route::post('insert_survey_equipment', [SurveyEquipmentsController::class, 'insert']);
     Route::post('update_survey_equipment', [SurveyEquipmentsController::class, 'update']);
+    Route::get('get_incoming_outgoing_equipments', [SurveyEquipmentsController::class, 'getIO']);
+    Route::post('insert_incoming_outgoing_equipment', [SurveyEquipmentsController::class, 'insertIO']);
+    Route::post('update_incoming_outgoing_equipment', [SurveyEquipmentsController::class, 'updateIO']);
 
     //COMPANY ASSET
     Route::get('get_house_and_lot', [OfficeSuppliesController::class, 'getHaL']);

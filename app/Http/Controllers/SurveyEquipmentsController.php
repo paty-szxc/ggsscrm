@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SurveyEquipments;
+use App\Models\SurveyEquipmentMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator; 
@@ -86,6 +87,103 @@ class SurveyEquipmentsController extends Controller
         return response()->json([
             'message' => 'Survey equipment updated successfully!',
             'data' => $equipment,
+        ]);
+    }
+
+    // Incoming/Outgoing Equipment Methods
+    public function getIO(){
+        return SurveyEquipmentMovement::all();
+    }
+
+    public function insertIO(Request $req){
+        $validator = Validator::make($req->all(), [
+            'to_update.description' => 'required|array',
+            'to_update.description.*' => 'required|string',
+            'to_update.site' => 'nullable|string',
+            'to_update.handled_by' => 'nullable|string',
+            'to_update.incoming_date' => 'nullable|date',
+            'to_update.outgoing_date' => 'nullable|date',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $req->to_update;
+        $descriptions = is_array($data['description']) ? $data['description'] : [$data['description']];
+        
+        $insertedRecords = [];
+        
+        // Create a record for each selected description
+        foreach($descriptions as $description) {
+            $insert = SurveyEquipmentMovement::create([
+                'description' => $description,
+                'site' => $data['site'] ?? null,
+                'handled_by' => $data['handled_by'] ?? null,
+                'incoming_date' => $data['incoming_date'] ?? null,
+                'outgoing_date' => $data['outgoing_date'] ?? null,
+            ]);
+            $insertedRecords[] = $insert;
+        }
+
+        return response()->json([
+            'message' => 'Equipment movement(s) inserted successfully!',
+            'data' => $insertedRecords,
+        ], 201);
+    }
+
+    public function updateIO(Request $req){
+        $validator = Validator::make($req->all(), [
+            'to_update.description' => 'required|array',
+            'to_update.description.*' => 'required|string',
+            'to_update.site' => 'nullable|string',
+            'to_update.handled_by' => 'nullable|string',
+            'to_update.incoming_date' => 'nullable|date',
+            'to_update.outgoing_date' => 'nullable|date',
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $data = $req->to_update;
+        $descriptions = is_array($data['description']) ? $data['description'] : [$data['description']];
+        
+        // For editing, we'll update the first description and create new records for additional ones
+        $movement = SurveyEquipmentMovement::findOrFail($req->to_update['id']);
+        
+        // Update the existing record with the first description
+        $movement->update([
+            'description' => $descriptions[0],
+            'site' => $data['site'] ?? $movement->site,
+            'handled_by' => $data['handled_by'] ?? $movement->handled_by,
+            'incoming_date' => $data['incoming_date'] ?? $movement->incoming_date,
+            'outgoing_date' => $data['outgoing_date'] ?? $movement->outgoing_date,
+        ]);
+
+        $updatedRecords = [$movement];
+        
+        // Create new records for additional descriptions
+        for($i = 1; $i < count($descriptions); $i++) {
+            $newRecord = SurveyEquipmentMovement::create([
+                'description' => $descriptions[$i],
+                'site' => $data['site'] ?? null,
+                'handled_by' => $data['handled_by'] ?? null,
+                'incoming_date' => $data['incoming_date'] ?? null,
+                'outgoing_date' => $data['outgoing_date'] ?? null,
+            ]);
+            $updatedRecords[] = $newRecord;
+        }
+
+        return response()->json([
+            'message' => 'Equipment movement(s) updated successfully!',
+            'data' => $updatedRecords,
         ]);
     }
 }

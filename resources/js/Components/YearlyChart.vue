@@ -48,10 +48,10 @@ const currentYearData = ref(null);
 
 //manual data for previous years (2021-2024) with default values
 const manualData = ref(props.manualDataOverride || {
-	2021: { sales_revenue: 3545150, expenses: 800000 },
-	2022: { sales_revenue: 7232601, expenses: 950000 },
-	2023: { sales_revenue: 16635500, expenses: 1100000 },
-	2024: { sales_revenue: 16695850, expenses: 1200000 }
+	2021: { sales_revenue: 3545150, expenses: 834850 },
+	2022: { sales_revenue: 7232601, expenses: 1941685 },
+	2023: { sales_revenue: 16635500, expenses: 9431799.57 },
+	2024: { sales_revenue: 16695850, expenses: 6772623.83 }
 });
 
 const fetchCurrentYearData = async () => {
