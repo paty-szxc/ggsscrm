@@ -377,6 +377,11 @@ const outgoingItems = computed(() => ioItems.value.filter(it => it.direction ===
 const saveIOForm = async () => {
     const to_update = { ...tempIOData.value }
 
+    //join the array of descriptions into a single string.
+    if(Array.isArray(to_update.description)){
+        to_update.description = to_update.description.join(', ');
+    }
+    
     //move unified date into backend fields for compatibility
     if(to_update.direction === 'incoming'){
         to_update.incoming_date = to_update.date || null
@@ -387,10 +392,11 @@ const saveIOForm = async () => {
         to_update.incoming_date = null
     }
 
-    // Ensure description is properly set as array
+    //ensure description is properly set as array
     if(!to_update.description){
         to_update.description = []
-    } else if(typeof to_update.description === 'string') {
+    }
+    else if(typeof to_update.description === 'string'){
         to_update.description = [to_update.description]
     }
 
@@ -463,7 +469,7 @@ const openIODialog = (mode, item = null) => {
         if(!tempIOData.value.direction){
             tempIOData.value.direction = tempIOData.value.incoming_date && !tempIOData.value.outgoing_date ? 'incoming' : 'outgoing'
         }
-        // Ensure description is an array for editing
+        //ensure description is an array for editing
         if(typeof tempIOData.value.description === 'string') {
             tempIOData.value.description = [tempIOData.value.description]
         }
@@ -484,10 +490,10 @@ const fetchIOEquipments = async () => {
         const res = await axios.get('/get_incoming_outgoing_equipments');
         ioItems.value = res.data.map(item => ({
             ...item,
-            // normalize to have date + direction for UI
+            //normalize to have date + direction for UI
             date: item.incoming_date || item.outgoing_date || null,
             direction: item.incoming_date && !item.outgoing_date ? 'incoming' : 'outgoing',
-            // Ensure description is available for display
+            //ensure description is available for display
             description: item.description || item.equipment_description || '',
         }));
         console.log(res.data);
