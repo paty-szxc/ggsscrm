@@ -184,9 +184,11 @@
                         </v-btn>
                         <v-btn
                             @click="submit"
+                            :loading="isSubmitting"
+                            :disabled="isSubmitting || !client"
                             color="green darken-1"
                             text>
-                            {{ isEditMode ? 'Update' : 'Submit'}}
+                            {{ isEditMode === 'add' ? 'Submit' : 'Update'}}
                         </v-btn>
                 </v-card-actions>
             </v-card>
@@ -197,6 +199,7 @@
             :pdf-url="pdfToViewUrl" 
             @update:dialog="pdfViewerDialog = $event">
         </PdfViewerDialog>
+
         <Snackbar ref="snackbar"></Snackbar>
     </v-container>
 </template>
@@ -232,6 +235,8 @@ const current_attachment_url = ref(null)
 const current_revised_attachment_url = ref(null)
 const editing = ref(null)
 
+const isSubmitting = ref(false)
+
 const pdfViewerDialog = ref(false)
 const pdfToViewUrl = ref(null)
 
@@ -241,6 +246,7 @@ const openPdfViewer = (url) => {
 }
 
 const submit = async () => {
+    isSubmitting.value = true
     const formData = new FormData()
     formData.append('client', client.value)
     formData.append('location', location.value)
@@ -289,7 +295,8 @@ const submit = async () => {
         if(res.data.success){
             if(isEditMode.value === 'add'){
                 snackbar.value.alertSuccess(res.data.message)
-            } else {
+            }
+            else{
                 snackbar.value.alertUpdate()
             }
             closeDialog()
@@ -315,6 +322,9 @@ const submit = async () => {
             snackbar.value.alertWarning('An error occurred. Please try again later.')
             console.error('Error submitting data:', err)
         }
+    }
+    finally {
+        isSubmitting.value = false
     }
 } //NOTE - end of submit & update function
 

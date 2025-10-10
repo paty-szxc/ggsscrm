@@ -6,17 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class HouseAndLot extends Model
+class SurveyTitle extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'house_and_lot';
+    protected $table = 'survey_titles';
 
     protected $fillable = [
-        'address',
-        'cost',
-        'pdf_path',
-        'original_filename',
-        'property_type'
+        'date_of_survey',
+        'client',
+        'type_of_survey',
+        'lot_plan',
+        'lot_plan_original_name'
     ];
 }

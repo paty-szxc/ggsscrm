@@ -5,6 +5,7 @@
             :timeout="timeout"
             location="top right"
             v-model="snackbar"
+            elevation="24"
             >
             {{ snackbarMessage }}
         </v-snackbar>
@@ -17,7 +18,7 @@ import { ref, defineExpose } from 'vue';
 const snackbar = ref(false);
 const snackbarColor = ref('')
 const snackbarMessage = ref('');
-const timeout = ref(3500)
+const timeout = ref(5000)
 
 const alertSuccess = () => {
     snackbarColor.value = 'green-darken-2'

@@ -16,7 +16,8 @@ class CompanyVehicle extends Model
         'vehicle_name',
         'cost',
         'pdf_path',
-        'original_filename'
+        'original_filename',
+        'vehicle_type'
     ];
 
     public function maintenanceRecords(){

@@ -1,344 +1,407 @@
 <template>
     <v-container fluid>
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-        <h1 class="p-2 sm:p-4 font-sans sm:indent-8 text-xl sm:text-2xl">Survey Equipments</h1>
-        <div class="flex-shrink-0">
-            <v-tooltip location="left">
-                <template v-slot:activator="{ props }">
-                    <v-btn
-                        @click="openIODialog('add')"
-                        color="info"
-                        icon
-                        size="small"
-                        v-bind="props">
-                        <v-icon>mdi-plus</v-icon>
-                    </v-btn>
-                </template>
-                <span>Add Incoming/Outgoing Equipments</span>
-            </v-tooltip>
+            <h1 class="p-2 sm:p-4 font-sans sm:indent-8 text-xl sm:text-2xl">Survey Equipments</h1>
+            <div class="flex-shrink-0">
+                <v-tooltip location="left" v-if="!userIsChecker">
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            @click="openIODialog('add')"
+                            color="info"
+                            icon
+                            size="small"
+                            v-bind="props"
+                        >
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Add Incoming/Outgoing Equipments</span>
+                </v-tooltip>
+                <v-tooltip location="left" v-else>
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                            color="grey"
+                            icon
+                            size="small"
+                            v-bind="props"
+                            style="cursor: not-allowed;">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    <span>Restricted: Only selected users can add.</span>
+                </v-tooltip>
+            </div>
         </div>
-    </div>
 
-    <div class="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
-        <div class="flex-1 bg-white rounded-lg shadow p-4">
-            <h2 class="text-lg font-semibold mb-2">List(s) of Equipments</h2>
-            <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
-                <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
-                    <v-text-field
-                        clearable
-                        hide-details
-                        label="Search"
-                        density="compact"
-                        prepend-inner-icon="mdi-magnify"
-                        v-model="searchList">
-                    </v-text-field>
+        <div class="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
+            <div class="flex-1 bg-white rounded-lg shadow p-4">
+                <h2 class="text-lg font-semibold mb-2">List(s) of Equipments</h2>
+                <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
+                    <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
+                        <v-text-field
+                            clearable
+                            hide-details
+                            label="Search"
+                            density="compact"
+                            prepend-inner-icon="mdi-magnify"
+                            v-model="searchList">
+                        </v-text-field>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <v-tooltip location="bottom" v-if="!userIsChecker">
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    @click="openDialog('add')"
+                                    color="info"
+                                    icon
+                                    size="small"
+                                    v-bind="props">
+                                    <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Add</span>
+                        </v-tooltip>
+                        <v-tooltip location="bottom" v-else>
+                            <template v-slot:activator="{ props }">
+                                <v-btn
+                                    color="grey"
+                                    icon
+                                    size="small"
+                                    v-bind="props"
+                                    style="cursor: not-allowed;">
+                                    <v-icon>mdi-plus</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Restricted: Only selected users can add.</span>
+                        </v-tooltip>
+                    </div>
                 </div>
-                <div class="flex-shrink-0">
-                    <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn
-                                @click="openDialog('add')"
-                                color="info"
-                                icon
-                                size="small"
-                                v-bind="props">
-                                <v-icon>mdi-plus</v-icon>
-                            </v-btn>
+                <div class="overflow-x-auto">
+                    <v-data-table
+                        class="font-sans mt-3"
+                        density="compact"
+                        fixed-footer
+                        fixed-header
+                        item-key="id"
+                        :headers="headers"
+                        :items="items"
+                        :search="searchList">
+                        <template v-slot:item.price="{ item }">
+                            {{ formatCurrency(item.price) }}
                         </template>
-                        <span>Add</span>
-                    </v-tooltip>
+                        <template v-slot:item.status="{ item }">
+                            <v-chip :color="getStatusColor(item.status)" size="small" variant="flat">
+                                {{ item.status }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:item.actions="{ item }">
+                            <v-tooltip location="bottom" v-if="!userIsChecker">
+                                <template v-slot:activator="{ props }">
+                                    <v-icon
+                                        @click="openDialog('edit', item)"
+                                        size="small"
+                                        class="me-2"
+                                        color="info"
+                                        style="cursor: pointer;"
+                                        v-bind="props">
+                                        mdi-pencil
+                                    </v-icon>
+                                </template>
+                                <span>Edit</span>
+                            </v-tooltip>
+                            <v-tooltip location="bottom" v-else>
+                                <template v-slot:activator="{ props }">
+                                    <v-icon
+                                        size="small"
+                                        class="me-2"
+                                        color="grey"
+                                        v-bind="props"
+                                        style="cursor: not-allowed;"> mdi-pencil
+                                    </v-icon>
+                                </template>
+                                <span>Restricted: Only selected users can edit.</span>
+                            </v-tooltip>
+                        </template>
+                    </v-data-table>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <v-data-table
-                    class="font-sans mt-3"
-                    density="compact"
-                    fixed-footer
-                    fixed-header
-                    item-key="id"
-                    :headers="headers"
-                    :items="items"
-                    :search="searchList">
-                    <template v-slot:item.price="{ item }">
-                        {{ formatCurrency(item.price) }}
-                    </template>
-                    <template v-slot:item.status="{ item }">
-                        <v-chip :color="getStatusColor(item.status)" size="small" variant="flat">
-                            {{ item.status }}
-                        </v-chip>
-                    </template>
-                    <template v-slot:item.actions="{ item }">
-                        <v-tooltip location="bottom">
-                            <template v-slot:activator="{ props }">
-                                <v-icon
-                                    @click="openDialog('edit', item)"
-                                    size="small"
-                                    class="me-2"
-                                    color="info"
-                                    style="cursor: pointer;"
-                                    v-bind="props">
-                                    mdi-pencil
-                                </v-icon>
-                            </template>
-                            <span>Edit</span>
-                        </v-tooltip>
-                    </template>
-                </v-data-table>
-            </div>
-        </div>
 
-        <div class="flex-1 bg-white rounded-lg shadow p-4">
-            <h2 class="text-lg font-semibold mb-2">Incoming Equipments</h2>
-            <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
-                <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
-                    <v-text-field
-                        clearable
-                        hide-details
-                        label="Search"
+            <div class="flex-1 bg-white rounded-lg shadow p-4">
+                <h2 class="text-lg font-semibold mb-2">Incoming Equipments</h2>
+                <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
+                    <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
+                        <v-text-field
+                            clearable
+                            hide-details
+                            label="Search"
+                            density="compact"
+                            prepend-inner-icon="mdi-magnify"
+                            v-model="searchIncoming">
+                        </v-text-field>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <v-data-table
+                        class="font-sans mt-3"
                         density="compact"
-                        prepend-inner-icon="mdi-magnify"
-                        v-model="searchIncoming">
-                    </v-text-field>
+                        fixed-footer
+                        fixed-header
+                        item-key="id"
+                        :headers="ioHeaders"
+                        :items="incomingItems"
+                        :search="searchIncoming">
+                        <template v-slot:item.direction="{ item }">
+                            <v-chip :color="item.direction === 'incoming' ? 'green' : 'orange'" size="small" variant="flat">
+                                {{ item.direction }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:item.date="{ item }">
+                            {{ item.date }}
+                        </template>
+                        <template v-slot:item.actions="{ item }">
+                            <v-tooltip location="bottom" v-if="!userIsChecker">
+                                <template v-slot:activator="{ props }">
+                                    <v-icon
+                                        @click="openIODialog('edit', item)"
+                                        size="small"
+                                        class="me-2"
+                                        color="info"
+                                        style="cursor: pointer;"
+                                        v-bind="props">
+                                        mdi-pencil
+                                    </v-icon>
+                                </template>
+                                <span>Edit</span>
+                            </v-tooltip>
+                            <v-tooltip location="bottom" v-else>
+                                <template v-slot:activator="{ props }">
+                                    <v-icon
+                                        size="small"
+                                        class="me-2"
+                                        color="grey"
+                                        v-bind="props"
+                                        style="cursor: not-allowed;"> mdi-pencil
+                                    </v-icon>
+                                </template>
+                                <span>Restricted: Only selected users can edit.</span>
+                            </v-tooltip>
+                        </template>
+                    </v-data-table>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <v-data-table
-                    class="font-sans mt-3"
-                    density="compact"
-                    fixed-footer
-                    fixed-header
-                    item-key="id"
-                    :headers="ioHeaders"
-                    :items="incomingItems"
-                    :search="searchIncoming">
-                    <template v-slot:item.direction="{ item }">
-                        <v-chip :color="item.direction === 'incoming' ? 'green' : 'orange'" size="small" variant="flat">
-                            {{ item.direction }}
-                        </v-chip>
-                    </template>
-                    <template v-slot:item.date="{ item }">
-                        {{ item.date }}
-                    </template>
-                    <template v-slot:item.actions="{ item }">
-                        <v-tooltip location="bottom">
-                            <template v-slot:activator="{ props }">
-                                <v-icon
-                                    @click="openIODialog('edit', item)"
-                                    size="small"
-                                    class="me-2"
-                                    color="info"
-                                    style="cursor: pointer;"
-                                    v-bind="props">
-                                    mdi-pencil
-                                </v-icon>
-                            </template>
-                            <span>Edit</span>
-                        </v-tooltip>
-                    </template>
-                </v-data-table>
-            </div>
-        </div>
 
-        <div class="flex-1 bg-white rounded-lg shadow p-4">
-            <h2 class="text-lg font-semibold mb-2">Outgoing Equipments</h2>
-            <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
-                <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
-                    <v-text-field
-                        clearable
-                        hide-details
-                        label="Search"
+            <div class="flex-1 bg-white rounded-lg shadow p-4">
+                <h2 class="text-lg font-semibold mb-2">Outgoing Equipments</h2>
+                <div class="flex items-center w-full sm:w-auto gap-2 sm:gap-4">
+                    <div class="flex-grow min-w-[150px] sm:min-w-[250px]">
+                        <v-text-field
+                            clearable
+                            hide-details
+                            label="Search"
+                            density="compact"
+                            prepend-inner-icon="mdi-magnify"
+                            v-model="searchOutgoing">
+                        </v-text-field>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <v-data-table
+                        class="font-sans mt-3"
                         density="compact"
-                        prepend-inner-icon="mdi-magnify"
-                        v-model="searchOutgoing">
-                    </v-text-field>
+                        fixed-footer
+                        fixed-header
+                        item-key="id"
+                        :headers="ioHeaders"
+                        :items="outgoingItems"
+                        :search="searchOutgoing">
+                        <template v-slot:item.direction="{ item }">
+                            <v-chip :color="item.direction === 'incoming' ? 'green' : 'orange'" size="small" variant="flat">
+                                {{ item.direction }}
+                            </v-chip>
+                        </template>
+                        <template v-slot:item.date="{ item }">
+                            {{ item.date }}
+                        </template>
+                        <template v-slot:item.actions="{ item }">
+                            <v-tooltip location="bottom" v-if="!userIsChecker">
+                                <template v-slot:activator="{ props }">
+                                    <v-icon
+                                        @click="openIODialog('edit', item)"
+                                        size="small"
+                                        class="me-2"
+                                        color="info"
+                                        style="cursor: pointer;"
+                                        v-bind="props">
+                                        mdi-pencil
+                                    </v-icon>
+                                </template>
+                                <span>Edit</span>
+                            </v-tooltip>
+                            <v-tooltip location="bottom" v-else>
+                                <template v-slot:activator="{ props }">
+                                    <v-icon
+                                        size="small"
+                                        class="me-2"
+                                        color="grey"
+                                        v-bind="props"
+                                        style="cursor: not-allowed;"> mdi-pencil
+                                    </v-icon>
+                                </template>
+                                <span>Restricted: Only selected users can edit.</span>
+                            </v-tooltip>
+                        </template>
+                    </v-data-table>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <v-data-table
-                    class="font-sans mt-3"
-                    density="compact"
-                    fixed-footer
-                    fixed-header
-                    item-key="id"
-                    :headers="ioHeaders"
-                    :items="outgoingItems"
-                    :search="searchOutgoing">
-                    <template v-slot:item.direction="{ item }">
-                        <v-chip :color="item.direction === 'incoming' ? 'green' : 'orange'" size="small" variant="flat">
-                            {{ item.direction }}
-                        </v-chip>
-                    </template>
-                    <template v-slot:item.date="{ item }">
-                        {{ item.date }}
-                    </template>
-                    <template v-slot:item.actions="{ item }">
-                        <v-tooltip location="bottom">
-                            <template v-slot:activator="{ props }">
-                                <v-icon
-                                    @click="openIODialog('edit', item)"
-                                    size="small"
-                                    class="me-2"
-                                    color="info"
-                                    style="cursor: pointer;"
-                                    v-bind="props">
-                                    mdi-pencil
-                                </v-icon>
-                            </template>
-                            <span>Edit</span>
-                        </v-tooltip>
-                    </template>
-                </v-data-table>
-            </div>
         </div>
-    </div>
                                 <!-- NOTE - start of add & edit dialog of list of equipments -->
-    <v-dialog class="transition-discrete md:transition-normal" v-model="dialog" width="450" persistent no-click-animation>
-        <v-card>
-            <v-card-title style="background: linear-gradient(135deg, #0047AB, #50C878); 
-            color: white;"> {{ isEditMode ? 'Edit' : 'Add' }}
-            </v-card-title>
-            <v-card-text>
-                <v-text-field
-                    hide-details
-                    label="Description"
-                    v-model="tempData.description">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Price"
-                    prefix="₱"
-                    @input="handleCurrencyInput"
-                    @blur="formatCurrencyDisplay"
-                    v-model="tempData.price">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Quantity"
-                    v-model="tempData.qty">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Serial No.(If any)"
-                    v-model="tempData.serial_no">
-                </v-text-field>
-                <v-date-input
-                    class="mt-3"
-                    density="compact"
-                    hide-details
-                    label="Date Supplied/Installed"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempData.date_supplied"
-                    :max="new Date().toISOString().split('T')[0]"
-                />   
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Status"
-                    v-model="tempData.status">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Recommendations"
-                    v-model="tempData.recos">
-                </v-text-field>
-            </v-card-text>
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn 
-                    @click="closeDialog"
-                    color="red darken-1"
-                    text>
-                    Cancel
-                </v-btn>
-                <v-btn
-                    @click="saveForm"
-                    color="green darken-1"
-                    text>
-                    {{ isEditMode ? 'Update' : 'Submit' }}
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <v-dialog class="transition-discrete md:transition-normal" v-model="dialog" width="450" persistent no-click-animation>
+            <v-card>
+                <v-card-title style="background: linear-gradient(135deg, #0047AB, #50C878); 
+                color: white;"> {{ isEditMode ? 'Edit' : 'Add' }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field
+                        hide-details
+                        label="Description"
+                        v-model="tempData.description">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Price"
+                        prefix="₱"
+                        @input="handleCurrencyInput"
+                        @blur="formatCurrencyDisplay"
+                        v-model="tempData.price">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Quantity"
+                        v-model="tempData.qty">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Serial No.(If any)"
+                        v-model="tempData.serial_no">
+                    </v-text-field>
+                    <v-date-input
+                        class="mt-3"
+                        density="compact"
+                        hide-details
+                        label="Date Supplied/Installed"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
+                        v-model="tempData.date_supplied"
+                        :max="new Date().toISOString().split('T')[0]"
+                    />   
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Status"
+                        v-model="tempData.status">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Recommendations"
+                        v-model="tempData.recos">
+                    </v-text-field>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn 
+                        @click="closeDialog"
+                        color="red darken-1"
+                        text>
+                        Cancel
+                    </v-btn>
+                    <v-btn
+                        @click="saveForm"
+                        color="green darken-1"
+                        text>
+                        {{ isEditMode ? 'Update' : 'Submit' }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
 
                                 <!-- NOTE - start of add & edit dialog of incoming/outgoing equipments -->
-    <v-dialog class="transition-discrete md:transition-normal" v-model="ioDialog" width="450" persistent no-click-animation>
-        <v-card>
-            <v-card-title style="background: linear-gradient(135deg, #0047AB, #50C878); 
-                color: white;">{{ isEditingMode ? 'Edit' : 'Add' }}
-            </v-card-title>
-            <v-card-text>
-                <v-autocomplete
-                    density="compact"
-                    hide-details
-                    label="Direction"
-                    :items="ioTypeOptions"
-                    item-title="label"
-                    item-value="value"
-                    v-model="tempIOData.direction"
-                    variant="outlined">
-                </v-autocomplete>
-                <v-autocomplete
-                    class="mt-3"
-                    hide-details
-                    density="compact"
-                    :items="items" 
-                    item-title="description" 
-                    item-value="description"
-                    label="Description"
-                    multiple
-                    variant="outlined"
-                    v-model="tempIOData.description">
-                </v-autocomplete>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Site"
-                    v-model="tempIOData.site">
-                </v-text-field>
-                <v-text-field
-                    class="mt-3"
-                    hide-details
-                    label="Handled By"
-                    v-model="tempIOData.handled_by">
-                </v-text-field>
-                <v-date-input
-                    class="mt-3"
-                    clearable
-                    density="compact"
-                    hide-details
-                    label="Date"
-                    prepend-icon=""
-                    prepend-inner-icon="mdi-calendar"
-                    variant="outlined"
-                    v-model="tempIOData.date"
-                    :max="new Date().toISOString().split('T')[0]">
-                </v-date-input>
-            </v-card-text>
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn 
-                    @click="closeIODialog"
-                    color="red darken-1"
-                    text>
-                    Cancel
-                </v-btn>
-                <v-btn
-                    @click="saveIOForm"
-                    color="green darken-1"
-                    text>
-                    {{ isEditingMode ? 'Update' : 'Submit' }}
-                </v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+        <v-dialog class="transition-discrete md:transition-normal" v-model="ioDialog" width="450" persistent no-click-animation>
+            <v-card>
+                <v-card-title style="background: linear-gradient(135deg, #0047AB, #50C878); 
+                    color: white;">{{ isEditingMode ? 'Edit' : 'Add' }}
+                </v-card-title>
+                <v-card-text>
+                    <v-autocomplete
+                        density="compact"
+                        hide-details
+                        label="Direction"
+                        :items="ioTypeOptions"
+                        item-title="label"
+                        item-value="value"
+                        v-model="tempIOData.direction"
+                        variant="outlined">
+                    </v-autocomplete>
+                    <v-autocomplete
+                        class="mt-3"
+                        hide-details
+                        density="compact"
+                        :items="items" 
+                        item-title="description" 
+                        item-value="description"
+                        label="Description"
+                        multiple
+                        variant="outlined"
+                        v-model="tempIOData.description">
+                    </v-autocomplete>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Site"
+                        v-model="tempIOData.site">
+                    </v-text-field>
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Handled By"
+                        v-model="tempIOData.handled_by">
+                    </v-text-field>
+                    <v-date-input
+                        class="mt-3"
+                        clearable
+                        density="compact"
+                        hide-details
+                        label="Date"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+                        variant="outlined"
+                        v-model="tempIOData.date"
+                        :max="new Date().toISOString().split('T')[0]">
+                    </v-date-input>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn 
+                        @click="closeIODialog"
+                        color="red darken-1"
+                        text>
+                        Cancel
+                    </v-btn>
+                    <v-btn
+                        @click="saveIOForm"
+                        color="green darken-1"
+                        text>
+                        {{ isEditingMode ? 'Update' : 'Submit' }}
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
 
-    <Snackbar ref="snackbar"></Snackbar>
+        <Snackbar ref="snackbar"></Snackbar>
     </v-container>
 </template>
 
@@ -346,6 +409,7 @@
 import axios from 'axios';
 import { onMounted, ref, computed } from 'vue';
 import Snackbar from '../../Components/Snackbar.vue';
+import { usePage } from '@inertiajs/vue3'
 
 const snackbar = ref(null)
 
@@ -479,15 +543,30 @@ const openIODialog = (mode, item = null) => {
 
 const resetIOForm = () => {
     tempIOData.value = {
-        description: []
+        description: [],
+        handled_by: null, // Initialize it
+        // other fields...
+    }
+
+    if(currentUser.value){
+        const excludeEmpsCodes = ['0000-0000', '0001-0000', '0000-0003', '0000-0005', '0000-0012', '0002-0000']
+        const normalizedId = String(currentUser.value.emp_code).trim().toLowerCase()
+        const isExcluded = excludeEmpsCodes.map(code => code.toLowerCase()).includes(normalizedId)
+
+        if(isExcluded){
+            tempIOData.value.handled_by = currentUser.value.username
+        }
+        else{
+            tempIOData.value.handled_by = `Engr. ${currentUser.value.username}`
+        }
     }
     edit.value = null
     isEditingMode.value = false
-}
+};
 
 const fetchIOEquipments = async () => {
     try{
-        const res = await axios.get('/get_incoming_outgoing_equipments');
+        const res = await axios.get('/get_incoming_outgoing_equipments')
         ioItems.value = res.data.map(item => ({
             ...item,
             //normalize to have date + direction for UI
@@ -495,11 +574,11 @@ const fetchIOEquipments = async () => {
             direction: item.incoming_date && !item.outgoing_date ? 'incoming' : 'outgoing',
             //ensure description is available for display
             description: item.description || item.equipment_description || '',
-        }));
-        console.log(res.data);
+        }))
+        console.log(res.data)
     }
     catch(error){
-        console.error('Error fetching incoming & outgoing equipments', error);
+        console.error('Error fetching incoming & outgoing equipments', error)
     }
 }
 
@@ -521,6 +600,7 @@ const tempData = ref({})
 const edit = ref({})
 const dialog = ref(false)
 const isEditMode = ref(false)
+const currentUser = ref(null)
 
 const saveForm = async () => {
     const to_update = { ...tempData.value }
@@ -528,7 +608,7 @@ const saveForm = async () => {
     //convert formatted price (with commas) back to a number
     if(to_update.price) {
         //remove commas and any non-numeric characters except decimal point
-        to_update.price = parseFloat(to_update.price.toString().replace(/[^\d.]/g, ''));
+        to_update.price = parseFloat(to_update.price.toString().replace(/[^\d.]/g, ''))
     }
 
     //format date only if they are not already formatted
@@ -607,7 +687,7 @@ const resetForm = () => {
 
 
 const getStatusColor = (status) => {
-    const normalizedStatus = status.toUpperCase();
+    const normalizedStatus = status.toUpperCase()
     if(normalizedStatus.includes('MISSING')){
         return 'red'
     }
@@ -618,60 +698,80 @@ const getStatusColor = (status) => {
         return 'green'
     }
     return 'grey'
-};
+}
 
 const formatCurrency = (value) => {
-    if(!value && value !== 0) return '0.00';
-    const num = parseFloat(value);
-    if (isNaN(num)) return '0.00';
+    if(!value && value !== 0) return '0.00'
+    const num = parseFloat(value)
+    if (isNaN(num)) return '0.00'
     
     return num.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    });
-};
+    })
+}
 
 const handleCurrencyInput = () => {
     if(tempData.value.price){
         //remove all non-numeric characters except decimal point
-        let value = tempData.value.price.toString();
-        value = value.replace(/[^\d.]/g, '');
+        let value = tempData.value.price.toString()
+        value = value.replace(/[^\d.]/g, '')
         
         //ensure only one decimal point
-        const parts = value.split('.');
+        const parts = value.split('.')
         if(parts.length > 2){
-            value = parts[0] + '.' + parts.slice(1).join('');
+            value = parts[0] + '.' + parts.slice(1).join('')
         }
         
-        tempData.value.price = value;
+        tempData.value.price = value
     }
-};
+}
 
 const formatCurrencyDisplay = () => {
     if(tempData.value.price && tempData.value.price !== ''){
-        const num = parseFloat(tempData.value.price);
+        const num = parseFloat(tempData.value.price)
         if(!isNaN(num)){
-            tempData.value.price = formatCurrency(num);
+            tempData.value.price = formatCurrency(num)
         }
     }
-};
+}
+
+const userIsChecker = computed(() => {
+    const authUser = usePage().props.auth?.user
+    if (!authUser) return false
+    const userEmpCode = authUser.emp_code
+    const checkerEmpCode = '0000-0011'
+    return userEmpCode === checkerEmpCode
+})
+
+const fetchCurrentUser = async () => {
+    try{
+        const res = await axios.get('/get_current_user_for_survey')
+        currentUser.value = res.data
+        console.log(res.data)
+    } 
+    catch(error){
+        console.error('Error fetching user data', error)
+    }
+}
 
 const fetchSurveyEquipments = async () => {
     try{
-        const res = await axios.get('/get_survey_equipments');
+        const res = await axios.get('/get_survey_equipments')
         items.value = res.data.map(item => ({
             ...item,
             formattedPrice: formatCurrency(item.price)  //use the actual item.price, not tempData
         }))
-        console.log(res.data);
+        console.log(res.data)
     }
     catch(error){
-        console.error('Error fetching Survey data', error);
+        console.error('Error fetching Survey data', error)
     }
 }
 
 onMounted(() => {
     fetchSurveyEquipments()
     fetchIOEquipments()
+    fetchCurrentUser()
 })
 </script>

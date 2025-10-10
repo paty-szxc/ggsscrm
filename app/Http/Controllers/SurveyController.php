@@ -11,9 +11,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\SurveyProjectFile;
+use App\Traits\AuthorizesAccess;
 
 class SurveyController extends Controller
 {
+    use AuthorizesAccess;
     public function index(Request $req){
         $user = auth()->user();
         $showAll = $req->input('show_all', 1);
@@ -127,11 +129,11 @@ class SurveyController extends Controller
     public function upload(Request $request){
         // return $request; 
         // return $request->hasFile('files');
-        // 1. Validate the incoming request, including the survey_project_id
+        // 1. validate the incoming request, including the survey_project_id
         $request->validate([
             // 'survey_project_id' => 'required|exists:survey_projects,id', // Ensure it exists in the projects table
             'files' => 'required|array',
-            'files.*' => 'file|mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt|max:104857600',
+            'files.*' => 'file|mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,dwg|max:104857600',
         ], [
             // 'survey_project_id.exists' => 'The selected survey project does not exist.',
             'files.*.mimes' => 'The :attribute must be a file of type: :values.',
@@ -144,7 +146,7 @@ class SurveyController extends Controller
         $surveyProjectId = $edit_survey_id ? $edit_survey_id : $lastId;
         // return $surveyProjectId;
         $uploadedFileDetails = [];
-        if ($request->hasFile('files')) {
+        if($request->hasFile('files')){
             foreach ($request->file('files') as $file) {
                 $originalName = $file->getClientOriginalName();
                 $mimeType = $file->getMimeType();
@@ -183,10 +185,10 @@ class SurveyController extends Controller
         $currentYear = date('Y');
         $nextYear = $currentYear + 1;
 
-        // Get manual data for 2021-2024 from config
+        // get manual data for 2021-2024 from config
         $manualData = $this->getManualYearlyData();
 
-        // Get current year data from sales_revenue and vouchers tables
+        // get current year data from sales_revenue and vouchers tables
         $currentYearSales = DB::table('sales_revenue')
             ->select(DB::raw('SUM(project_cost) as total_sales'))
             ->whereYear('date_of_survey', $currentYear)

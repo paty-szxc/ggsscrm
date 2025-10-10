@@ -162,7 +162,6 @@
                         label="Thru"
                         v-model="tempData.thru">
                     </v-text-field>
-    
                     <!-- <v-date-input
                         class="mt-3"
                         density="compact"
@@ -173,7 +172,6 @@
                         variant="outlined"
                         v-model="tempData.date_delivered"
                     /> -->
-    
                     <v-file-input
                         class="mt-3"
                         density="compact"
@@ -186,7 +184,7 @@
                         multiple
                         label="File Upload"
                         @change="handleFileChange"
-                        accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                        accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.dwg"
                     />
                 </div>
 
@@ -728,16 +726,16 @@ const closeAddDialog = () => {
 
 const fetchSurveyData = async () => {
     try{
-        let params = {};
+        let params = {}
         if(currentUser.value && (currentUser.value.role === 'Admin')){
-            params.show_all = showAll.value ? 1 : 0;
+            params.show_all = showAll.value ? 1 : 0
         }
-        const res = await axios.get('/get_survey_data', { params });
-        surveyData.value = res.data;
-        console.log(res.data);
+        const res = await axios.get('/get_survey_data', { params })
+        surveyData.value = res.data
+        console.log(res.data)
     }
     catch(error){
-        console.error('Error fetching Survey data', error);
+        console.error('Error fetching Survey data', error)
     }
 }
 

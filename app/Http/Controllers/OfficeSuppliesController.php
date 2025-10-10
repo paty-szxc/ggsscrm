@@ -64,12 +64,30 @@ class OfficeSuppliesController extends Controller
         }
     }
 
-    //* house and lot functions *//
-    public function getHaL(){
+    //SECTION - house and lot functions
+    public function getHaL(){ //NOTE - function for company assets
         // return HouseAndLot::all();
-        $houseAndLots = HouseAndLot::orderBy('address', 'asc')->get();
+        $houseAndLot = HouseAndLot::where('property_type', 'company')
+            ->orderBy('address', 'asc')
+            ->get();
 
         //append full URL for PDF to each item before returning the response
+        foreach($houseAndLot as $item){
+            if($item->pdf_path){
+                $item->pdf_url = Storage::url($item->pdf_path);
+            }
+            else{
+                $item->pdf_url = null;
+            }
+        }
+        return $houseAndLot;
+    }
+
+    public function getPersonalHaL(){ //NOTE - function for personal assets
+        $houseAndLots = HouseAndLot::where('property_type', 'personal')
+            ->orderBy('address', 'asc')
+            ->get();
+
         foreach($houseAndLots as $item){
             if($item->pdf_path){
                 $item->pdf_url = Storage::url($item->pdf_path);
@@ -81,11 +99,12 @@ class OfficeSuppliesController extends Controller
         return $houseAndLots;
     }
 
-    public function insertHaL(Request $req){
+    public function insertHaL(Request $req){ //NOTE - insert function for HaL
         try{
             $validated = $req->validate([
                 'address' => 'required|string|max:255',
                 'cost' =>  ['nullable', 'numeric'],
+                'property_type' => 'required|in:company,personal',
                 'pdf_file' => 'nullable|mimes:jpg,jpeg,png,pdf|max:104857600'
             ]);
 
@@ -103,6 +122,7 @@ class OfficeSuppliesController extends Controller
             $insert = HouseAndLot::create([
                 'address' => $validated['address'],
                 'cost' => $validated['cost'],
+                'property_type' => $validated['property_type'], 
                 'pdf_path' => $pdfPath,
             ]);
 
@@ -129,13 +149,14 @@ class OfficeSuppliesController extends Controller
         }
     }
 
-    public function updateHaL(Request $req, $id){
+    public function updateHaL(Request $req, $id){ //NOTE - update function for HaL
         try{
             $houseAndLot = HouseAndLot::findOrFail($id);
 
             $validated = $req->validate([
                 'address' => 'string|max:255',
                 'cost' => ['nullable', 'numeric', 'min:0'],
+                'property_type' => 'required|in:company,personal',
                 'pdf_file' => 'nullable|mimes:jpg,jpeg,png,pdf|max:104857600',
             ], [
                 'pdf_file.max' => 'The PDF file must not exceed 10MB',
@@ -160,6 +181,7 @@ class OfficeSuppliesController extends Controller
             $houseAndLot->update([
                 'address' => $validated['address'],
                 'cost' => $validated['cost'],
+                'property_type' => $validated['property_type'], 
                 'pdf_path' => $pdfPath,
             ]);
 
@@ -190,15 +212,16 @@ class OfficeSuppliesController extends Controller
                 'message' => 'Error updating House & Lot: ' . $e->getMessage()
             ], 500);
         }
-    }
+    } //NOTE -  end of HaL functions
 
     //SECTION -  company vehicle functions 
     public function getCompVehicle(){
-        // return CompanyVehicle::all();
-        $vehicles = CompanyVehicle::all();
+        //return CompanyVehicle::all();
+        $vehicle = CompanyVehicle::where('vehicle_type', 'company')
+            ->get();
 
-        // Append full URL for PDF to each item before returning the response
-        foreach($vehicles as $item){
+        //append full URL for PDF to each item before returning the response
+        foreach($vehicle as $item){
             if($item->pdf_path){
                 $item->vehicle_pdf_url = Storage::url($item->pdf_path);
             }
@@ -206,14 +229,30 @@ class OfficeSuppliesController extends Controller
                 $item->vehicle_pdf_url = null;
             }
         }
-        return $vehicles;
+        return $vehicle;
     }
 
-    public function insertCV(Request $req){
+    public function getPersonalVehicle(){ //NOTE - function for personal vehicle
+        $vehicle = CompanyVehicle::where('vehicle_type', 'personal')
+            ->get();
+
+        foreach($vehicle as $item){
+            if($item->pdf_path){
+                $item->vehicle_pdf_url = Storage::url($item->pdf_path);
+            }
+            else{
+                $item->vehicle_pdf_url = null;
+            }
+        }
+        return $vehicle;
+    }
+
+    public function insertCV(Request $req){ //NOTE - insert function for company vehicle
         try{
             $validated = $req->validate([
                 'vehicle_name' => 'string|max:255',
                 'cost' =>  ['nullable', 'numeric'],
+                'vehicle_type' => 'required|in:company,personal',
                 'pdf_file' => 'nullable|mimes:jpg,jpeg,png,pdf|max:10485760'
             ]);
 
@@ -231,6 +270,7 @@ class OfficeSuppliesController extends Controller
             $insert = CompanyVehicle::create([
                 'vehicle_name' => $validated['vehicle_name'],
                 'cost' => $validated['cost'],
+                'vehicle_type' => $validated['vehicle_type'],
                 'pdf_path' => $pdfPath
             ]);
 
@@ -257,7 +297,7 @@ class OfficeSuppliesController extends Controller
         }
     }
 
-    public function updateCV(Request $req, $id){
+    public function updateCV(Request $req, $id){ //NOTE - update function for vehicle
         // return $req;
         try{
             $vehicle = CompanyVehicle::findOrFail($id);
@@ -265,6 +305,7 @@ class OfficeSuppliesController extends Controller
             $validated = $req->validate([
                 'vehicle_name' => 'string|max:255',
                 'cost' => ['nullable', 'numeric', 'min:0'],
+                'vehicle_type' => 'required|in:company,personal',
                 'pdf_file' => 'nullable|mimes:jpg,jpeg,png,pdf|max:104857600',
             ], [
                 'pdf_file.max' => 'The PDF file must not exceed 10MB',
@@ -289,6 +330,7 @@ class OfficeSuppliesController extends Controller
             $vehicle->update([
                 'vehicle_name' => $validated['vehicle_name'],
                 'cost' => $validated['cost'],
+                'vehicle_type' => $validated['vehicle_type'],
                 'pdf_path' => $pdfPath,
             ]);
 
