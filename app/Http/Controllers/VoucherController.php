@@ -48,16 +48,17 @@ class VoucherController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,csv,xls|max:10000',
         ]);
-        try {
+        try{
             $file = $request->file('file');
             $spreadsheet = IOFactory::load($file->getRealPath());
             $sheetCount = $spreadsheet->getSheetCount();
 
-            if ($sheetCount > 1) {
-                // Multi-sheet import
+            if($sheetCount > 1){
+                //multi-sheet import
                 Excel::import(new VouchersMultiSheetImport(), $file);
-            } else {
-                // Single-sheet import
+            }
+            else{
+                //single-sheet import
                 Excel::import(new VoucherImport(), $file);
             }
 
@@ -96,15 +97,19 @@ class VoucherController extends Controller
         $formatDate = function($date){
             return $date ? date('Y-m-d', strtotime($date)) : null;
         };
+
         $data = $req->input('to_update', []);
         $id = $data['id'] ?? null;
-        if (!$id) {
+
+        if(!$id){
             return response()->json(['success' => false, 'message' => 'ID is required for update'], 400);
         }
+
         $voucher = Voucher::find($id);
-        if (!$voucher) {
+        if(!$voucher){
             return response()->json(['success' => false, 'message' => 'Voucher not found'], 404);
         }
+
         $data['date'] = $formatDate($data['date'] ?? null);
         $voucher->update($data);
         return response()->json(['success' => true, 'voucher' => $voucher]);
@@ -155,24 +160,59 @@ class VoucherController extends Controller
         
         $data = collect($allMonths)->map(function ($month) use ($results) {
             $found = $results->firstWhere('month', $month);
+
+            //extract the amounts, defaulting to 0
+            $categories = [
+                'salary' => (float) ($found ? $found->salary : 0),
+                'benefits' => (float) ($found ? $found->benefits : 0),
+                'meals' => (float) ($found ? $found->meals : 0),
+                'dog_food' => (float) ($found ? $found->dog_food : 0),
+                'construction' => (float) ($found ? $found->construction : 0),
+                'repairs' => (float) ($found ? $found->repairs : 0),
+                'office' => (float) ($found ? $found->office : 0),
+                'gas' => (float) ($found ? $found->gas : 0),
+                'utilities' => (float) ($found ? $found->utilities : 0),
+                'parking' => (float) ($found ? $found->parking : 0),
+                'toll' => (float) ($found ? $found->toll : 0),
+                'tax' => (float) ($found ? $found->tax : 0),
+                'transpo' => (float) ($found ? $found->transpo : 0),
+                'budget' => (float) ($found ? $found->budget : 0),
+            ];
+
+            $grandTotal = (float) ($found ? $found->grand_total : 0);
+            
+            //calculate percentages
+            $percentages = [];
+            foreach ($categories as $key => $amount){
+                if($grandTotal > 0){
+                    //calculate percentage, formatted to 2 decimal places
+                    $percentages[$key] = round(($amount / $grandTotal) * 100, 2);
+                }
+                else{
+                    $percentages[$key] = 0;
+                }
+            }
+
             return [
                 'month' => $month,
-                'categories' => [
-                    'salary' => $found ? $found->salary : 0,
-                    'benefits' => $found ? $found->benefits : 0,
-                    'meals' => $found ? $found->meals : 0,
-                    'dog_food' => $found ? $found->dog_food : 0,
-                    'construction' => $found ? $found->construction : 0,
-                    'repairs' => $found ? $found->repairs : 0,
-                    'office' => $found ? $found->office : 0,
-                    'gas' => $found ? $found->gas : 0,
-                    'utilities' => $found ? $found->utilities : 0,
-                    'parking' => $found ? $found->parking : 0,
-                    'toll' => $found ? $found->toll : 0,
-                    'tax' => $found ? $found->tax : 0,
-                    'transpo' => $found ? $found->transpo : 0,
-                    'budget' => $found ? $found->budget : 0,
-                ],
+                'categories' => $categories,
+                'percentages' => $percentages,
+                // 'categories' => [
+                //     'salary' => $found ? $found->salary : 0,
+                //     'benefits' => $found ? $found->benefits : 0,
+                //     'meals' => $found ? $found->meals : 0,
+                //     'dog_food' => $found ? $found->dog_food : 0,
+                //     'construction' => $found ? $found->construction : 0,
+                //     'repairs' => $found ? $found->repairs : 0,
+                //     'office' => $found ? $found->office : 0,
+                //     'gas' => $found ? $found->gas : 0,
+                //     'utilities' => $found ? $found->utilities : 0,
+                //     'parking' => $found ? $found->parking : 0,
+                //     'toll' => $found ? $found->toll : 0,
+                //     'tax' => $found ? $found->tax : 0,
+                //     'transpo' => $found ? $found->transpo : 0,
+                //     'budget' => $found ? $found->budget : 0,
+                // ],
                 'grand_total' => $found ? $found->grand_total : 0
             ];
         });

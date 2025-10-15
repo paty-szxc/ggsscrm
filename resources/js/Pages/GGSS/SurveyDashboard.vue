@@ -55,6 +55,8 @@ const borderColors = [
     'rgba(210, 105, 30, 1', 'rgba(139, 69, 19, 1', 'rgba(176, 196, 222, 1',
 ]
 
+const monthlyExpensesData = ref(Array(12).fill(null))
+
 const createChartData = (label, data) => ({
     labels: months,
     datasets: [{
@@ -64,7 +66,7 @@ const createChartData = (label, data) => ({
         borderColor: borderColors,
         borderWidth: 1
     }]
-});
+})
 
 const createChartOptions = (title) => ({
     responsive: true,
@@ -79,9 +81,9 @@ const createChartOptions = (title) => ({
         tooltip: {
             callbacks: {
                 label: function(context) {
-                    let value = context.parsed && typeof context.parsed.y === 'number' ? context.parsed.y : context.raw;
-                    let numericValue = Number(value);
-                    return isNaN(numericValue) ? 'Invalid value' : `${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    let value = context.parsed && typeof context.parsed.y === 'number' ? context.parsed.y : context.raw
+                    let numericValue = Number(value)
+                    return isNaN(numericValue) ? 'Invalid value' : `${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 }
             }
         }
@@ -91,12 +93,12 @@ const createChartOptions = (title) => ({
             beginAtZero: true,
             ticks: {
                 callback: function(value) {
-                    return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 }
             }
         }
     }
-});
+})
 
 const summarySalesData = ref({
     labels: months,
@@ -107,7 +109,7 @@ const summarySalesData = ref({
         borderColor: 'rgba(54, 162, 235, 1)',
         borderWidth: 1
     }]
-});
+})
 
 const summaryExpensesData = ref({
     labels: months,
@@ -118,9 +120,9 @@ const summaryExpensesData = ref({
         borderColor: 'rgba(255, 99, 132, 1)',
         borderWidth: 1
     }]
-});
+})
 
-const currentYear = new Date().getFullYear();
+const currentYear = new Date().getFullYear()
 
 const summaryOptions = {
     responsive: true,
@@ -137,9 +139,9 @@ const summaryOptions = {
         tooltip: {
             callbacks: {
                 label: function(context) {
-                    let value = context.parsed && typeof context.parsed.y === 'number' ? context.parsed.y : context.raw;
-                    let numericValue = Number(value);
-                    return isNaN(numericValue) ? 'Invalid value' : `${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    let value = context.parsed && typeof context.parsed.y === 'number' ? context.parsed.y : context.raw
+                    let numericValue = Number(value)
+                    return isNaN(numericValue) ? 'Invalid value' : `${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 }
             }
         }
@@ -150,7 +152,7 @@ const summaryOptions = {
             stacked: true,
             ticks: {
                 callback: function(value) {
-                    return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    return `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 }
             }
         },
@@ -158,45 +160,116 @@ const summaryOptions = {
             stacked: true
         }
     }
-};
+}
 
-const expensesChart = ref(createChartData('Expenses', Array(12).fill(0)));
-const expOptions = createChartOptions(`${currentYear} Monthly Expenses`);
+const expensesChart = ref(createChartData('Expenses', Array(12).fill(0)))
+// const expOptions = createChartOptions(`${currentYear} Monthly Expenses`)
+// CRITICAL: Merging the breakdown logic into expOptions
+const expOptions = ref({
+    ...createChartOptions(`${currentYear} Monthly Expenses`), // Base options
+    plugins: {
+        ...createChartOptions(`${currentYear} Monthly Expenses`).plugins,
+        // Ensure the title is correct
+        title: {
+            display: true,
+            text: `${currentYear} Monthly Expenses`,
+            font: { size: 16 }
+        },
+        tooltip: {
+            callbacks: {
+                title: function(context) {
+                    return context[0].label
+                },
+                label: function(context) {
+                    const totalLabel = 'Total Expenses'
+                    const totalValue = Number(context.raw).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    return `${totalLabel}: ${totalValue}`
+                },
+                //NEW: after body to append category percentages
+                afterBody: function(context) {
+                    const monthIndex = context[0].dataIndex
+                    const monthData = monthlyExpensesData.value[monthIndex]
+                    
+                    //check if expense data exists for the hovered month
+                    if (monthData && monthData.categories && monthData.percentages) {
+                        const breakdown = []
+                        const categories = monthData.categories
+                        const percentages = monthData.percentages
+                        
+                        breakdown.push('') //add a blank line for spacing
+                        breakdown.push('--- Category Breakdown ---')
+                        
+                        const categoryNames = Object.keys(categories)
+                        for(let i = 0; i < categoryNames.length; i++){
+                            const name = categoryNames[i]
+                            const capitalizedName = name.charAt(0).toUpperCase() + name.slice(1)
+                            //get percentage from object lookup
+                            const percentage = percentages[name] 
+                            //format the category total amount
+                            const amount = categories[name].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                            breakdown.push(`${capitalizedName}: ${amount} (${percentage}%)`)
+                        }
+                        
+                        return breakdown
+                    }
+                    return null 
+                }
+            }
+        }
+    }
+})
 
-const barChart = ref(createChartData('Project Cost', Array(12).fill(0)));
-const barOptions = createChartOptions(`${currentYear} Monthly Project Sales`);
+const barChart = ref(createChartData('Project Cost', Array(12).fill(0)))
+const barOptions = createChartOptions(`${currentYear} Monthly Project Sales`)
 
 const fetchMonthlyCosts = async () => {
     try{
-        const res = await axios.get('/monthly_totals');
-        const monthlyData = await res.data;
-        barChart.value.datasets[0].data = monthlyData.map(item => item.total_cost);
+        const res = await axios.get('/monthly_totals')
+        const monthlyData = await res.data
+        barChart.value.datasets[0].data = monthlyData.map(item => item.total_cost)
 
-        summarySalesData.value.datasets[0].data = monthlyData.map(item => item.total_cost);
+        summarySalesData.value.datasets[0].data = monthlyData.map(item => item.total_cost)
     } 
     catch(error){
-        console.error('Error fetching monthly costs:', error);
+        console.error('Error fetching monthly costs:', error)
     }
 }
 
 const fetchMonthlyExpenses = async () => {
     try{
+        // 1. Fetch Monthly Expenses (Contains totals and category breakdown for all 12 months)
         const res = await axios.get('/monthly_expenses')
-        const monthlyExpenses = await res.data
+        const monthlyExpenses = res.data
+
+        // CRITICAL: Store the full expense data globally for the tooltip
+        monthlyExpensesData.value = monthlyExpenses 
+
+        // Update the bar chart data for expenses
         expensesChart.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total)
 
-        summaryExpensesData.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total);
+        // Update Summary Chart data with monthly grand totals
+        summaryExpensesData.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total)
     }
     catch(error){
         console.error('Error fetching Monthly Expenses', error)
     }
+    // try{
+    //     const res = await axios.get('/monthly_expenses')
+    //     const monthlyExpenses = await res.data
+    //     expensesChart.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total)
+
+    //     summaryExpensesData.value.datasets[0].data = monthlyExpenses.map(item => item.grand_total)
+    // }
+    // catch(error){
+    //     console.error('Error fetching Monthly Expenses', error)
+    // }
 }
 
 
 onMounted(() => {
-    fetchMonthlyCosts();
-    fetchMonthlyExpenses();
-});
+    fetchMonthlyCosts()
+    fetchMonthlyExpenses()
+})
 
 </script>
 

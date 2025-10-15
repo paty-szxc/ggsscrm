@@ -18,6 +18,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 item-start">
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="Date Started"
@@ -46,6 +47,7 @@
                     </v-text-field>
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="Process Start Date"
@@ -56,6 +58,7 @@
                     /> 
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="Process End Date"
@@ -64,8 +67,15 @@
                         variant="outlined"
                         v-model="tempData.end_process"
                     /> 
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Permit Duration"
+                        v-model="tempData.permit_duration">
+                    </v-text-field>
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="Construction Start Date"
@@ -76,6 +86,7 @@
                     /> 
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="Construction End Date"
@@ -84,8 +95,15 @@
                         variant="outlined"
                         v-model="tempData.end_actual"
                     />
+                    <v-text-field
+                        class="mt-3"
+                        hide-details
+                        label="Construction Duration"
+                        v-model="tempData.construction_duration">
+                    </v-text-field>
                     <v-date-input
                         class="mt-3"
+                        clearable
                         density="compact"
                         hide-details
                         label="Date Completed/Delivered"
@@ -155,10 +173,12 @@ const headers = ref([
     { title: 'Processing of Permits', align: 'center', children: [
         { title: 'Start', value: 'start_process', align: 'center' },
         { title: 'End', value: 'end_process', align: 'center' },
+        { title: 'Duration', value: 'permit_duration', align: 'center' },
     ]},
     { title: 'Actual Construction', align: 'center', children: [
         { title: 'Start', value: 'start_actual', align: 'center' },
         { title: 'End', value: 'end_actual', align: 'center' },
+        { title: 'Duration', value: 'construction_duration', align: 'center' },
     ]},
     { title: 'Date Completed/Delivered', value: 'date_completed', align: 'center' },
 ])
@@ -174,21 +194,28 @@ const snackbar = ref(null)
 const submitForm = async () => {
     const to_update = { ...tempData.value }
 
-    //calculate duration before sending to backend
-    if(to_update.start_actual && to_update.date_completed){
-        const startDate = new Date(to_update.start_actual)
-        const endDate = new Date(to_update.date_completed)
-        if(!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())){
-            const diffTime = endDate - endDate
-            const diffDays = Math.max(Math.round(diffTime / (1000 * 60 * 60 * 24)), 0)
-            to_update.duration = diffDays
-        } 
-        else{
-            to_update.duration = null
-        }
+    //total duration
+    if(to_update.start_process && to_update.date_completed){
+        to_update.duration = calculateBusinessDays(to_update.start_process, to_update.date_completed)
     }
     else{
         to_update.duration = null
+    }
+
+    //permit duration 
+    if(to_update.start_process && to_update.end_process){
+        to_update.permit_duration = calculateBusinessDays(to_update.start_process, to_update.end_process)
+    }
+    else{
+        to_update.permit_duration = null
+    }
+
+    //construction duration 
+    if(to_update.start_actual && to_update.end_actual){
+        to_update.construction_duration = calculateBusinessDays(to_update.start_actual, to_update.end_actual)
+    }
+    else{
+        to_update.construction_duration = null
     }
 
     const dateFields = ['date_started', 'date_completed', 'start_process', 'end_process', 'start_actual', 'end_actual']
@@ -298,23 +325,69 @@ const fetchConstructionsData = async () => {
     }
 }
 
-watch(() => [tempData.value.start_actual, tempData.value.date_completed],
+const calculateBusinessDays = (start, end) => {
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    
+    //check for valid dates
+    if(isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate){
+        return null
+    }
+
+    let businessDays = 0
+    let currentDate = new Date(startDate.getTime()) //clone start date
+    
+    //loop through each day from start to end (inclusive)
+    while(currentDate <= endDate){
+        //.getDay() returns 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+        const dayOfWeek = currentDate.getDay() 
+        
+        //exclude Sunday (dayOfWeek === 0)
+        if(dayOfWeek !== 0){ 
+            businessDays++
+        }
+        
+        //advance to the next day
+        currentDate.setDate(currentDate.getDate() + 1)
+    }
+    return businessDays
+}
+
+//total duration
+watch(() => [tempData.value.start_process, tempData.value.date_completed],
     ([start, end]) => {
         if(start && end){
-        const startDate = new Date(start)
-        const endDate = new Date(end)
-            if(!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())){
-                //calculate the difference in days
-                const diffTime = endDate - startDate
-                const diffDays = Math.max(Math.round(diffTime / (1000 * 60 * 60 * 24)), 0)
-                tempData.value.duration = diffDays
-            } 
-            else{
-                tempData.value.duration = ''
-            }
-        } 
+            const diffDays = calculateBusinessDays(start, end)
+            tempData.value.duration = diffDays !== null ? diffDays : ''
+        }
         else{
-        tempData.value.duration = ''
+            tempData.value.duration = ''
+        }
+    }
+)
+
+//permit duration
+watch(() => [tempData.value.start_process, tempData.value.end_process],
+    ([start, end]) => {
+        if(start && end){
+            const diffDays = calculateBusinessDays(start, end)
+            tempData.value.permit_duration = diffDays !== null ? diffDays : ''
+        }
+        else{
+            tempData.value.permit_duration = ''
+        }
+    }
+)
+
+//construction duration
+watch(() => [tempData.value.start_actual, tempData.value.end_actual],
+    ([start, end]) => {
+        if(start && end){
+            const diffDays = calculateBusinessDays(start, end)
+            tempData.value.construction_duration = diffDays !== null ? diffDays : ''
+        }
+        else{
+            tempData.value.construction_duration = ''
         }
     }
 )

@@ -56,7 +56,7 @@ class SalesRevenueController extends Controller
             $item->receivable_bal = number_format($receivableBal, 2);
 
             //set fully paid date if receivable is zero or less
-            if ($receivableBal <= 0) {
+            if($receivableBal <= 0){
                 $dates = array_filter([
                     $item->first_date_of_collection,
                     $item->second_date_of_collection,
@@ -161,7 +161,7 @@ class SalesRevenueController extends Controller
             $this->parseCurrency($req->to_update['third_collection'] ?? null) +
             $this->parseCurrency($req->to_update['fourth_collection'] ?? null);
         $receivableBal = $projectCost - ($totalCollections + $withholdingTaxAmount);
-        if ($receivableBal < 0) $receivableBal = 0;
+        if($receivableBal < 0) $receivableBal = 0;
 
         $record = SalesRevenue::find($req->to_update['id']);
 

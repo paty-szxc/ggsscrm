@@ -81,6 +81,12 @@
             show-expand
             @dblclick:row="(item, event) => editData(event, item)"
             v-model:items-per-page="itemsPerPage">
+            <template v-slot:item.permit_duration="{ item }">
+                {{ item.permit_duration ? `${item.permit_duration} days` : '' }}
+            </template>
+            <template v-slot:item.construction_duration="{ item }">
+                {{ item.construction_duration ? `${item.construction_duration} days` : '' }}
+            </template>
             <template v-slot:item.data-table-expand="{ internalItem, isExpanded, toggleExpand }">
             <v-btn
                 :append-icon="isExpanded(internalItem) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
@@ -99,7 +105,7 @@
                             <thead>
                                 <tr>
                                 <!-- <th class="bg-inherit font-sans text-center">Date Completed/Delivered</th> -->
-                                <th class="bg-inherit font-sans text-center">Duration</th>
+                                <th class="bg-inherit font-sans text-center">Overall Duration</th>
                                 <th class="bg-inherit font-sans text-center">Contact Person</th>
                                 <th class="bg-inherit font-sans text-center">Contact No.</th>
                                 <th class="bg-inherit font-sans text-center">Remarks</th>
@@ -108,7 +114,7 @@
                             <tbody>
                                 <tr>
                                     <!-- <td class="bg-inherit font-sans text-center">{{ item.date_completed }}</td> -->
-                                    <td class="bg-inherit font-sans text-center">{{ item.duration }} days</td>
+                                    <td class="bg-inherit font-sans text-center">{{ item.duration ? `${item.duration} days` : ''}}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.contact_person }}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.contact_no }}</td>
                                     <td class="bg-inherit font-sans text-center">{{ item.remarks }}</td>
